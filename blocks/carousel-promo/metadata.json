@@ -1,0 +1,40 @@
+{
+  "variantName": "carousel-promo",
+  "baseBlock": "carousel",
+  "version": "1.0.0",
+  "created": "2026-02-18T18:22:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.lowi.es/",
+    "originPage": "homepage",
+    "blockPosition": "top"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "spacious",
+    "purpose": "hero-promo",
+    "imagePattern": "large",
+    "structure": "image + heading + subtitle + CTA"
+  },
+  "contentPattern": {
+    "structure": "image + heading + subtitle + CTA button",
+    "buttonCount": 1,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "homepage hero banners",
+      "promotional landing pages",
+      "product offer carousels"
+    ],
+    "notSuitableFor": [
+      "text-only carousels",
+      "testimonial carousels",
+      "feature showcase carousels"
+    ]
+  },
+  "usage": {
+    "pagesUsing": ["content/index"],
+    "reuseCount": 1,
+    "lastUsed": "2026-02-18T18:22:00.000Z"
+  }
+}

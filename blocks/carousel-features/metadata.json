@@ -1,0 +1,40 @@
+{
+  "variantName": "carousel-features",
+  "baseBlock": "carousel",
+  "version": "1.0.0",
+  "created": "2026-02-18T18:22:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.lowi.es/",
+    "originPage": "homepage",
+    "blockPosition": "middle"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "grey",
+    "density": "spacious",
+    "purpose": "feature-showcase",
+    "imagePattern": "large",
+    "structure": "image + heading + description"
+  },
+  "contentPattern": {
+    "structure": "image + heading + paragraph",
+    "buttonCount": 0,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "feature showcase sections",
+      "service highlight carousels",
+      "value proposition sections"
+    ],
+    "notSuitableFor": [
+      "hero banner carousels",
+      "testimonial carousels",
+      "pricing carousels"
+    ]
+  },
+  "usage": {
+    "pagesUsing": ["content/index"],
+    "reuseCount": 1,
+    "lastUsed": "2026-02-18T18:22:00.000Z"
+  }
+}

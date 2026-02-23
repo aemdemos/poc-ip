@@ -1,0 +1,40 @@
+{
+  "variantName": "columns-app",
+  "baseBlock": "columns",
+  "version": "1.0.0",
+  "created": "2026-02-18T18:22:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.lowi.es/",
+    "originPage": "homepage",
+    "blockPosition": "bottom"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "dark",
+    "density": "spacious",
+    "purpose": "app-promotion",
+    "imagePattern": "large",
+    "structure": "image | heading + subtitle + feature-list + CTA + store-links"
+  },
+  "contentPattern": {
+    "structure": "app screenshot | heading + subtitle + icon list + CTA button + app store badges",
+    "buttonCount": 1,
+    "imageCount": 4
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "mobile app promotion sections",
+      "product feature with image sections",
+      "dark-theme two-column layouts"
+    ],
+    "notSuitableFor": [
+      "light-theme promo banners",
+      "text-only comparison layouts",
+      "pricing sections"
+    ]
+  },
+  "usage": {
+    "pagesUsing": ["content/index"],
+    "reuseCount": 1,
+    "lastUsed": "2026-02-18T18:22:00.000Z"
+  }
+}

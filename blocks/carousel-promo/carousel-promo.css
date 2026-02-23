@@ -1,0 +1,333 @@
+/* ── Carousel Promo — Lowi hero banner style ── */
+
+.carousel-promo .carousel-promo-slides-container {
+  position: relative;
+}
+
+.carousel-promo .carousel-promo-slides,
+.carousel-promo .carousel-promo-slide-indicators {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.carousel-promo .carousel-promo-slides {
+  display: flex;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  overflow: scroll clip;
+  height: 100%;
+}
+
+.carousel-promo .carousel-promo-slides::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Slide: side-by-side layout (text left, image right) ── */
+.carousel-promo .carousel-promo-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  min-height: 510px;
+  background-color: var(--lw-color-background-white, #fff);
+  overflow: visible;
+  padding: 0 max(0px, calc((100% - 1440px) / 2));
+  box-sizing: border-box;
+}
+
+/* Black mask on right edge — curved overlay matching original lowi.es hero ::after */
+.carousel-promo .carousel-promo-slides-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 1440px);
+  border-radius: 0 200px 200px 0;
+  box-shadow: 50vw 0 0 var(--lw-color-brand-black, #0d0d0d);
+  pointer-events: none;
+}
+
+/* ── Image: right half ── */
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-image {
+  order: 2;
+  height: 100%;
+  position: relative;
+}
+
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-image picture {
+  position: absolute;
+  inset: 0;
+}
+
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-image picture > img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: left center;
+}
+
+/* ── Content: left half, dark text on white ── */
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-content {
+  order: 1;
+  z-index: 1;
+  padding: 24px 32px;
+  color: var(--lw-color-typography-dark, #0d0d0d);
+  background-color: transparent;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-content p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* Subtitle / description in red */
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-content > p:nth-child(2) {
+  color: var(--lw-color-brand-primary, #e60000);
+  font-weight: 400;
+}
+
+/* ── Rate bolus: dark pill with plan details + red price badge ── */
+.carousel-promo .carousel-promo-rate-bolus {
+  position: static;
+  display: flex;
+  align-items: stretch;
+  background-color: var(--lw-color-typography-dark, #0d0d0d);
+  border-radius: 100px;
+  height: 120px;
+  width: auto;
+  overflow: visible;
+  gap: 16px;
+}
+
+/* Left side: plan detail rows */
+.carousel-promo .carousel-promo-rate-bolus-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 0 0 32px;
+  flex: 1 1 0%;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel-promo .carousel-promo-rate-bolus-details p {
+  font-size: 18px;
+  line-height: 1.4;
+  color: #fff;
+  margin: 0;
+}
+
+.carousel-promo .carousel-promo-rate-bolus-details p strong {
+  font-weight: 700;
+}
+
+/* Right side: red price circle */
+.carousel-promo .carousel-promo-rate-bolus-price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--lw-color-brand-primary, #e60000);
+  border-radius: 50%;
+  width: 120px;
+  min-width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+/* Price grid layout inside circle */
+.carousel-promo .carousel-promo-price {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  color: #fff;
+}
+
+.carousel-promo .carousel-promo-price-amount {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+.carousel-promo .carousel-promo-price-decimals {
+  grid-row: 1;
+  grid-column: 2;
+  font-size: 18px;
+  line-height: 16px;
+}
+
+.carousel-promo .carousel-promo-price-recurrence {
+  grid-row: 2;
+  grid-column: 2;
+  font-size: 12px;
+  display: block;
+}
+
+.carousel-promo .carousel-promo-price-label {
+  grid-row: 3;
+  grid-column: 1 / 3;
+  font-size: 12px;
+  line-height: 1;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── CTA button: dark pill ── */
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-content a {
+  display: inline-block;
+  background-color: var(--lw-color-typography-dark, #0d0d0d);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 100px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1;
+  transition: background-color 0.2s;
+  width: fit-content;
+  margin-top: 8px;
+}
+
+.carousel-promo .carousel-promo-slide .carousel-promo-slide-content a:hover {
+  background-color: #333;
+  text-decoration: none;
+}
+
+/* ── Indicator nav: dark strip container ── */
+.carousel-promo nav[aria-label="Carousel Slide Controls"] {
+  height: 42px;
+  background: black;
+  align-content: space-evenly;
+  justify-items: center;
+}
+
+/* ── Indicator bar: pill with small dots ── */
+.carousel-promo .carousel-promo-slide-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background-color: var(--lw-color-neutral-80);
+  border-radius: 100px;
+  line-height: 0;
+  width: fit-content;
+  height: 26px;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.carousel-promo .carousel-promo-slide-indicator button {
+  width: 8px;
+  height: 8px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: rgb(255 255 255 / 40%);
+  transition: background-color 0.2s, width 0.2s;
+  cursor: pointer;
+}
+
+.carousel-promo .carousel-promo-slide-indicator button:disabled {
+  background-color: #fff;
+  width: 40px;
+  cursor: default;
+}
+
+.carousel-promo .carousel-promo-slide-indicator button:hover:not(:disabled),
+.carousel-promo .carousel-promo-slide-indicator button:focus-visible:not(:disabled) {
+  background-color: rgb(255 255 255 / 70%);
+}
+
+/* ── Mobile: stack vertically ── */
+@media (width < 600px) {
+  .carousel-promo .carousel-promo-slide {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 200px;
+    min-height: auto;
+  }
+
+  .carousel-promo .carousel-promo-slide .carousel-promo-slide-image {
+    order: 1;
+    min-height: 200px;
+  }
+
+  .carousel-promo .carousel-promo-slide .carousel-promo-slide-content {
+    order: 2;
+    padding: 20px 16px;
+  }
+}
+
+/* ── Tablet: fluid height scaling with viewport ── */
+@media (width >= 600px) and (width < 1025px) {
+  .carousel-promo .carousel-promo-slides-container {
+    height: 49.8vw; /* 510px at 1024px, scales down proportionally */
+    overflow: hidden;
+  }
+}
+
+/* ── Desktop: wider content area ── */
+@media (width >= 1025px) {
+  .carousel-promo .carousel-promo-slides-container {
+    max-height: 21.11vw; /* 304px at 1440px, scales down below */
+    overflow: hidden;
+  }
+
+  .carousel-promo .carousel-promo-slide {
+    grid-template-columns: 7fr 5fr;
+    min-height: auto;
+    height: 21.11vw; /* 304px at 1440px, scales down below */
+  }
+
+  .carousel-promo .carousel-promo-slide .carousel-promo-slide-content {
+    padding: 24px 48px;
+    position: static;
+  }
+
+  .carousel-promo .carousel-promo-slide .carousel-promo-slide-content h2 {
+    font-size: 32px;
+  }
+
+  .carousel-promo .carousel-promo-rate-bolus {
+    position: absolute;
+    bottom: 0.75rem;
+    left: calc(7 / 12 * 100%);
+    z-index: 1;
+    min-height: 96px;
+  }
+
+  .carousel-promo .carousel-promo-rate-bolus-price {
+    width: 120px;
+    min-width: 120px;
+    height: 120px;
+  }
+
+  .carousel-promo .carousel-promo-price-amount {
+    font-size: 40px;
+    line-height: 34px;
+  }
+
+  .carousel-promo .carousel-promo-rate-bolus-details p {
+    font-size: 16px;
+  }
+
+}

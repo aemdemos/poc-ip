@@ -1,9 +1,8 @@
 import { getMetadata } from '../../scripts/aem.js';
-import { fetchPlaceholders } from '../../scripts/placeholders.js';
 import { loadFragment } from '../fragment/fragment.js';
 
-// media query match that indicates mobile/tablet width
-const isDesktop = window.matchMedia('(min-width: 900px)');
+// media query match that indicates desktop width
+const isDesktop = window.matchMedia('(min-width: 1025px)');
 
 function closeOnEscape(e) {
   if (e.code === 'Escape') {
@@ -24,7 +23,7 @@ function closeOnEscape(e) {
 
 function closeOnFocusLost(e) {
   const nav = e.currentTarget;
-  if (!nav.contains(e.relatedTarget)) {
+  if (e.relatedTarget && !nav.contains(e.relatedTarget)) {
     const navSections = nav.querySelector('.nav-sections');
     const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
     if (navSectionExpanded && isDesktop.matches) {
@@ -74,8 +73,8 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
   const button = nav.querySelector('.nav-hamburger button');
   document.body.style.overflowY = (expanded || isDesktop.matches) ? '' : 'hidden';
   nav.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-  toggleAllNavSections(navSections, expanded || isDesktop.matches ? 'false' : 'true');
-  button.setAttribute('aria-label', expanded ? 'Open navigation' : 'Close navigation');
+  toggleAllNavSections(navSections, 'false');
+  button.setAttribute('aria-label', expanded ? 'Abrir navegación' : 'Cerrar navegación');
   // enable nav dropdown keyboard accessibility
   const navDrops = navSections.querySelectorAll('.nav-drop');
   if (isDesktop.matches) {
@@ -94,9 +93,7 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
 
   // enable menu collapse on escape keypress
   if (!expanded || isDesktop.matches) {
-    // collapse menu on escape press
     window.addEventListener('keydown', closeOnEscape);
-    // collapse menu on focus lost
     nav.addEventListener('focusout', closeOnFocusLost);
   } else {
     window.removeEventListener('keydown', closeOnEscape);
@@ -104,69 +101,17 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
   }
 }
 
-function getDirectTextContent(menuItem) {
-  const menuLink = menuItem.querySelector(':scope > :where(a,p)');
-  if (menuLink) {
-    return menuLink.textContent.trim();
-  }
-  return Array.from(menuItem.childNodes)
-    .filter((n) => n.nodeType === Node.TEXT_NODE)
-    .map((n) => n.textContent)
-    .join(' ');
-}
-
-async function buildBreadcrumbsFromNavTree(nav, currentUrl) {
-  const crumbs = [];
-
-  const homeUrl = document.querySelector('.nav-brand a[href]').href;
-
-  let menuItem = Array.from(nav.querySelectorAll('a')).find((a) => a.href === currentUrl);
-  if (menuItem) {
-    do {
-      const link = menuItem.querySelector(':scope > a');
-      crumbs.unshift({ title: getDirectTextContent(menuItem), url: link ? link.href : null });
-      menuItem = menuItem.closest('ul')?.closest('li');
-    } while (menuItem);
-  } else if (currentUrl !== homeUrl) {
-    crumbs.unshift({ title: getMetadata('og:title'), url: currentUrl });
-  }
-
-  const placeholders = await fetchPlaceholders();
-  const homePlaceholder = placeholders.breadcrumbsHomeLabel || 'Home';
-
-  crumbs.unshift({ title: homePlaceholder, url: homeUrl });
-
-  // last link is current page and should not be linked
-  if (crumbs.length > 1) {
-    crumbs[crumbs.length - 1].url = null;
-  }
-  crumbs[crumbs.length - 1]['aria-current'] = 'page';
-  return crumbs;
-}
-
-async function buildBreadcrumbs() {
-  const breadcrumbs = document.createElement('nav');
-  breadcrumbs.className = 'breadcrumbs';
-
-  const crumbs = await buildBreadcrumbsFromNavTree(document.querySelector('.nav-sections'), document.location.href);
-
-  const ol = document.createElement('ol');
-  ol.append(...crumbs.map((item) => {
-    const li = document.createElement('li');
-    if (item['aria-current']) li.setAttribute('aria-current', item['aria-current']);
-    if (item.url) {
-      const a = document.createElement('a');
-      a.href = item.url;
-      a.textContent = item.title;
-      li.append(a);
-    } else {
-      li.textContent = item.title;
-    }
-    return li;
-  }));
-
-  breadcrumbs.append(ol);
-  return breadcrumbs;
+/**
+ * Strips button decoration classes applied by decorateButtons
+ * @param {Element} container The container to strip button classes from
+ */
+function stripButtonClasses(container) {
+  container.querySelectorAll('.button-container').forEach((bc) => {
+    bc.classList.remove('button-container');
+  });
+  container.querySelectorAll('.button').forEach((btn) => {
+    btn.classList.remove('button', 'primary', 'secondary');
+  });
 }
 
 /**
@@ -176,14 +121,27 @@ async function buildBreadcrumbs() {
 export default async function decorate(block) {
   // load nav as fragment
   const navMeta = getMetadata('nav');
-  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
+  const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/content/nav';
   const fragment = await loadFragment(navPath);
 
   // decorate nav DOM
   block.textContent = '';
+
+  // collect all fragment sections
+  const fragmentSections = [...fragment.querySelectorAll(':scope > div')];
+
+  // extract topbar from first section (if we have 4+ sections)
+  const topbar = document.createElement('div');
+  topbar.className = 'nav-topbar';
+  if (fragmentSections.length > 3) {
+    const topbarSection = fragmentSections.shift();
+    while (topbarSection.firstChild) topbar.append(topbarSection.firstChild);
+  }
+
+  // build nav from remaining 3 sections: brand, sections, tools
   const nav = document.createElement('nav');
   nav.id = 'nav';
-  while (fragment.firstElementChild) nav.append(fragment.firstElementChild);
+  fragmentSections.forEach((section) => nav.append(section));
 
   const classes = ['brand', 'sections', 'tools'];
   classes.forEach((c, i) => {
@@ -191,45 +149,115 @@ export default async function decorate(block) {
     if (section) section.classList.add(`nav-${c}`);
   });
 
+  // brand: clean up button decoration on logo link
   const navBrand = nav.querySelector('.nav-brand');
-  const brandLink = navBrand.querySelector('.button');
-  if (brandLink) {
-    brandLink.className = '';
-    brandLink.closest('.button-container').className = '';
+  if (navBrand) {
+    stripButtonClasses(navBrand);
+    const brandImg = navBrand.querySelector('img');
+    if (brandImg) {
+      brandImg.setAttribute('alt', 'Lowi');
+      brandImg.closest('a')?.setAttribute('aria-label', 'Lowi — Inicio');
+    }
   }
 
+  // sections: set up nav links with dropdowns
   const navSections = nav.querySelector('.nav-sections');
   if (navSections) {
     navSections.querySelectorAll(':scope .default-content-wrapper > ul > li').forEach((navSection) => {
-      if (navSection.querySelector('ul')) navSection.classList.add('nav-drop');
-      navSection.addEventListener('click', () => {
-        if (isDesktop.matches) {
-          const expanded = navSection.getAttribute('aria-expanded') === 'true';
+      if (navSection.querySelector('ul')) {
+        navSection.classList.add('nav-drop');
+        // desktop: open on hover
+        navSection.addEventListener('mouseenter', () => {
+          if (isDesktop.matches) {
+            toggleAllNavSections(navSections);
+            navSection.setAttribute('aria-expanded', 'true');
+          }
+        });
+        navSection.addEventListener('mouseleave', () => {
+          if (isDesktop.matches) {
+            navSection.setAttribute('aria-expanded', 'false');
+          }
+        });
+        // handle click on the li itself (not just the anchor) so clicks
+        // that land on the li element still trigger the accordion toggle
+        navSection.addEventListener('click', (e) => {
+          // only handle clicks on the top-level link area, not on sub-menu links
+          if (e.target.closest('ul ul')) return;
+          e.preventDefault();
+          if (isDesktop.matches) return;
+          const wasExpanded = navSection.getAttribute('aria-expanded') === 'true';
           toggleAllNavSections(navSections);
-          navSection.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        }
-      });
+          navSection.setAttribute('aria-expanded', wasExpanded ? 'false' : 'true');
+        });
+      }
     });
-    navSections.querySelectorAll('.button-container').forEach((buttonContainer) => {
-      buttonContainer.classList.remove('button-container');
-      buttonContainer.querySelector('.button').classList.remove('button');
-    });
-  }
+    stripButtonClasses(navSections);
 
-  const navTools = nav.querySelector('.nav-tools');
-  if (navTools) {
-    const search = navTools.querySelector('a[href*="search"]');
-    if (search && search.textContent === '') {
-      search.setAttribute('aria-label', 'Search');
+    // mobile: add "¿Tienes dudas?" help link at the bottom of nav list
+    const navList = navSections.querySelector('.default-content-wrapper > ul');
+    if (navList) {
+      const helpItem = document.createElement('li');
+      helpItem.className = 'nav-help-link';
+      helpItem.innerHTML = '<a href="/asistencia/">¿Tienes dudas?</a>';
+      navList.append(helpItem);
     }
   }
+
+  // tools: add icons to cart and login links
+  const navTools = nav.querySelector('.nav-tools');
+  if (navTools) {
+    stripButtonClasses(navTools);
+
+    // cart link — build icon, then move out of tools into nav
+    const cartLink = navTools.querySelector('a[href*="cart"]');
+    if (cartLink) {
+      cartLink.className = 'nav-cart-link';
+      cartLink.setAttribute('aria-label', 'Carrito');
+      cartLink.textContent = '';
+      const cartIcon = document.createElement('span');
+      cartIcon.className = 'icon icon-cart';
+      cartIcon.innerHTML = '<img src="/icons/cart.svg" loading="lazy" alt="">';
+      cartLink.append(cartIcon);
+
+      // move cart to sit right after nav-sections (before tools)
+      const cartWrapper = document.createElement('div');
+      cartWrapper.className = 'nav-cart';
+      cartWrapper.append(cartLink);
+      if (navSections) navSections.after(cartWrapper);
+    }
+
+    // login link
+    const loginLink = navTools.querySelector('a[href*="milowi"]');
+    if (loginLink) {
+      loginLink.className = 'nav-login-link';
+      const loginText = document.createElement('span');
+      loginText.className = 'nav-login-text';
+      loginText.textContent = 'Soy Cliente';
+      const loginIcon = document.createElement('span');
+      loginIcon.className = 'icon icon-user';
+      loginIcon.innerHTML = '<img src="/icons/user.svg" loading="lazy" alt="">';
+      loginLink.textContent = '';
+      loginLink.append(loginText, loginIcon);
+    }
+  }
+
+  // topbar: strip button decoration and tag links
+  stripButtonClasses(topbar);
+  const topbarPhoneLink = topbar.querySelector('a[href^="tel:"]');
+  if (topbarPhoneLink) topbarPhoneLink.classList.add('topbar-phone');
+
+  const topbarHelpLink = topbar.querySelector('a[href*="asistencia"]');
+  if (topbarHelpLink) topbarHelpLink.classList.add('topbar-help');
+
+  const topbarCallbackLink = topbar.querySelector('a[href*="te-llamamos"]');
+  if (topbarCallbackLink) topbarCallbackLink.classList.add('topbar-callback');
 
   // hamburger for mobile
   const hamburger = document.createElement('div');
   hamburger.classList.add('nav-hamburger');
-  hamburger.innerHTML = `<button type="button" aria-controls="nav" aria-label="Open navigation">
-      <span class="nav-hamburger-icon"></span>
-    </button>`;
+  hamburger.innerHTML = `<button type="button" aria-controls="nav" aria-label="Abrir navegación">
+    <span class="nav-hamburger-icon"></span>
+  </button>`;
   hamburger.addEventListener('click', () => toggleMenu(nav, navSections));
   nav.prepend(hamburger);
   nav.setAttribute('aria-expanded', 'false');
@@ -239,10 +267,7 @@ export default async function decorate(block) {
 
   const navWrapper = document.createElement('div');
   navWrapper.className = 'nav-wrapper';
+  navWrapper.append(topbar);
   navWrapper.append(nav);
   block.append(navWrapper);
-
-  if (getMetadata('breadcrumbs').toLowerCase() === 'true') {
-    navWrapper.append(await buildBreadcrumbs());
-  }
 }

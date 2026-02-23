@@ -1,0 +1,40 @@
+{
+  "variantName": "carousel-testimonial",
+  "baseBlock": "carousel",
+  "version": "1.0.0",
+  "created": "2026-02-18T18:22:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.lowi.es/",
+    "originPage": "homepage",
+    "blockPosition": "bottom"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "minimal",
+    "purpose": "testimonial",
+    "imagePattern": "icon",
+    "structure": "icon + quote + author"
+  },
+  "contentPattern": {
+    "structure": "social icon + quote text + author name",
+    "buttonCount": 0,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "customer testimonial sections",
+      "review carousels",
+      "social proof sections"
+    ],
+    "notSuitableFor": [
+      "hero banner carousels",
+      "feature showcase carousels",
+      "product carousels"
+    ]
+  },
+  "usage": {
+    "pagesUsing": ["content/index"],
+    "reuseCount": 1,
+    "lastUsed": "2026-02-18T18:22:00.000Z"
+  }
+}

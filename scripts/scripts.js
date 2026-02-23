@@ -71,12 +71,55 @@ function autolinkModals(doc) {
 }
 
 /**
+ * Extracts page-level metadata block and applies values as <meta> tags.
+ * @param {Element} main The main element
+ */
+function buildPageMetadata(main) {
+  const metadataBlock = main.querySelector('.metadata');
+  if (!metadataBlock) return;
+
+  metadataBlock.querySelectorAll(':scope > div').forEach((row) => {
+    const cols = [...row.children];
+    if (cols.length >= 2) {
+      const name = cols[0].textContent.trim().toLowerCase();
+      const value = cols.slice(1).map((c) => c.textContent.trim()).join(', ');
+      if (name && value) {
+        const existing = document.head.querySelector(`meta[name="${name}"]`);
+        if (existing) {
+          existing.setAttribute('content', value);
+        } else {
+          const meta = document.createElement('meta');
+          meta.setAttribute('name', name);
+          meta.setAttribute('content', value);
+          document.head.append(meta);
+        }
+        if (name === 'title' && !document.title) {
+          document.title = value;
+        }
+      }
+    }
+  });
+
+  // apply template and theme classes to body (runs before decorateTemplateAndTheme)
+  const template = document.head.querySelector('meta[name="template"]');
+  if (template) {
+    template.content.split(',').forEach((c) => {
+      document.body.classList.add(c.trim().toLowerCase().replace(/[^0-9a-z]/gi, '-').replace(/-+/g, '-')
+        .replace(/^-|-$/g, ''));
+    });
+  }
+
+  const section = metadataBlock.closest('main > div');
+  if (section) section.remove();
+}
+
+/**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
-function buildAutoBlocks() {
+function buildAutoBlocks(main) {
   try {
-    // TODO: add auto block, if needed
+    buildPageMetadata(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);

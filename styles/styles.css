@@ -11,65 +11,196 @@
  */
 
 :root {
-  /* colors */
-  --background-color: white;
-  --light-color: #f8f8f8;
-  --dark-color: #505050;
-  --text-color: #131313;
-  --link-color: #3b63fb;
-  --link-hover-color: #1d3ecf;
-  --overlay-background-color:lightgrey;
+  /* Lowi brand palette — brand */
+  --lw-color-brand-black: #0d0d0d;
+  --lw-color-brand-red: #e60000;
+  --lw-color-brand-white: #fff;
+
+  /* Lowi brand palette — brand red scale */
+  --lw-color-brand-red-5: #fef2f2;
+  --lw-color-brand-red-10: #fce6e6;
+  --lw-color-brand-red-20: #facccc;
+  --lw-color-brand-red-40: #f59999;
+  --lw-color-brand-red-60: #f06666;
+  --lw-color-brand-red-80: #eb3333;
+  --lw-color-brand-red-100: #e60000;
+  --lw-color-brand-red-110: #c00000;
+  --lw-color-brand-red-120: #900;
+  --lw-color-brand-red-140: #730000;
+  --lw-color-brand-red-160: #4d0000;
+
+  /* Lowi brand palette — neutrals */
+  --lw-color-neutral-black: #0d0d0d;
+  --lw-color-neutral-90: #252525;
+  --lw-color-neutral-80: #3d3d3d;
+  --lw-color-neutral-70: #4d4d4d;
+  --lw-color-neutral-60: #6e6e6e;
+  --lw-color-neutral-50: #868686;
+  --lw-color-neutral-40: #9e9e9e;
+  --lw-color-neutral-30: #b6b6b6;
+  --lw-color-neutral-20: #cfcfcf;
+  --lw-color-neutral-10: #e7e7e7;
+  --lw-color-neutral-5: #f3f3f3;
+  --lw-color-neutral-white: #fff;
+
+  /* Lowi brand palette — backgrounds */
+  --lw-color-background-white: #fff;
+  --lw-color-background-black: #0d0d0d;
+  --lw-color-background-highlighted: #f3f3f3;
+  --lw-color-background-overlay: #0d0d0d7f;
+  --lw-color-background-red: #e60000;
+
+  /* Lowi brand palette — typography */
+  --lw-color-typography-dark: #0d0d0d;
+  --lw-color-typography-light: #fff;
+  --lw-color-typography-mid: #6e6e6e;
+  --lw-color-typography-accent: #e60000;
+  --lw-color-typography-on-disabled: #e7e7e7;
+  --lw-color-typography-disabled: #b6b6b6;
+  --lw-color-typography-accent02: #045d79;
+  --lw-color-typography-accent01: #b00606;
+
+  /* Lowi brand palette — states */
+  --lw-color-states-error: #c00000;
+  --lw-color-states-success: #469100;
+  --lw-color-states-info: #03769a;
+  --lw-color-states-alert: #eeb61e;
+
+  /* Lowi brand palette — icons */
+  --lw-color-icons-black: #0d0d0d;
+  --lw-color-icons-white: #fff;
+  --lw-color-icons-disabled: #b6b6b6;
+  --lw-color-icons-ondisabled: #e7e7e7;
+
+  /* Lowi brand palette — modules */
+  --lw-color-modules-00: #fff;
+  --lw-color-modules-01: #e60000;
+  --lw-color-modules-02: #f3f3f3;
+  --lw-color-modules-03: #6e6e6e;
+  --lw-color-modules-04: #0d0d0d;
+
+  /* Lowi brand palette — dividers & strokes */
+  --lw-color-dividers-strokes-dark: #252525;
+  --lw-color-dividers-strokes-mid: #b6b6b6;
+  --lw-color-dividers-strokes-accent: #e60000;
+  --lw-color-dividers-strokes-light: #fff;
+
+  /* Lowi brand palette — interactive primary (light) */
+  --lw-color-interactive-primary-light-enabled: #0d0d0d;
+  --lw-color-interactive-primary-light-hover: #979797;
+  --lw-color-interactive-primary-light-active: #e60000;
+  --lw-color-interactive-primary-light-focus: #00b0ca;
+  --lw-color-interactive-primary-light-disabled: #afafaf;
+
+  /* Lowi brand palette — interactive primary (dark) */
+  --lw-color-interactive-primary-dark-enabled: #fff;
+  --lw-color-interactive-primary-dark-hover: #979797;
+  --lw-color-interactive-primary-dark-active: #e60000;
+  --lw-color-interactive-primary-dark-focus: #00b0ca;
+  --lw-color-interactive-primary-dark-disabled: #afafaf;
+
+  /* Lowi brand palette — interactive secondary (light) */
+  --lw-color-interactive-secondary-light-enabled: #e60000;
+  --lw-color-interactive-secondary-light-hover: #f06666;
+  --lw-color-interactive-secondary-light-active: #c00000;
+  --lw-color-interactive-secondary-light-focus: #00b0ca;
+  --lw-color-interactive-secondary-light-disabled: #facccc;
+
+  /* Lowi brand palette — interactive secondary (dark) */
+  --lw-color-interactive-secondary-dark-enabled: #e60000;
+  --lw-color-interactive-secondary-dark-hover: #f06666;
+  --lw-color-interactive-secondary-dark-active: #c00000;
+  --lw-color-interactive-secondary-dark-focus: #00b0ca;
+  --lw-color-interactive-secondary-dark-disabled: #facccc;
+
+  /* Lowi brand palette — interactive tertiary (light) */
+  --lw-color-interactive-tertiary-light-enabled: #fff;
+  --lw-color-interactive-tertiary-light-hover: #fff;
+  --lw-color-interactive-tertiary-light-active: #e60000;
+  --lw-color-interactive-tertiary-light-focus: #00b0ca;
+  --lw-color-interactive-tertiary-light-disabled: #afafaf;
+
+  /* Lowi brand palette — interactive tertiary (dark) */
+  --lw-color-interactive-tertiary-dark-enabled: #0d0d0d;
+  --lw-color-interactive-tertiary-dark-hover: #0d0d0d;
+  --lw-color-interactive-tertiary-dark-active: #e60000;
+  --lw-color-interactive-tertiary-dark-focus: #00b0ca;
+  --lw-color-interactive-tertiary-dark-disabled: #afafaf;
+
+  /* Lowi spacing scale (4px base) */
+  --lw-spacing-1: 4px;
+  --lw-spacing-2: 8px;
+  --lw-spacing-3: 12px;
+  --lw-spacing-4: 16px;
+  --lw-spacing-5: 20px;
+  --lw-spacing-6: 24px;
+  --lw-spacing-7: 32px;
+  --lw-spacing-8: 40px;
+
+  /* Lowi border-radius */
+  --lw-radius-s: 8px;
+  --lw-radius-m: 20px;
+  --lw-radius-l: 32px;
+  --lw-radius-pill: 100px;
+  --lw-radius-circle: 50%;
+
+  /* Lowi box-shadow */
+  --lw-shadow-card: 0 0 16px 0 rgb(0 0 0 / 16%);
+
+  /* EDS semantic colors (mapped to Lowi tokens) */
+  --background-color: var(--lw-color-background-white);
+  --light-color: var(--lw-color-neutral-5);
+  --dark-color: var(--lw-color-brand-black);
+  --text-color: var(--lw-color-typography-dark);
+  --text-color-muted: var(--lw-color-typography-mid);
+  --link-color: var(--lw-color-typography-dark);
+  --link-hover-color: var(--lw-color-typography-dark);
+  --brand-red: var(--lw-color-brand-red);
+  --overlay-background-color: var(--lw-color-background-highlighted);
+  --border-color: var(--lw-color-dividers-strokes-mid);
+  --border-color-light: var(--lw-color-neutral-10);
 
   /* fonts */
-  --body-font-family: roboto, roboto-fallback, sans-serif;
-  --heading-font-family: roboto-condensed, roboto-condensed-fallback, sans-serif;
+  --body-font-family: poppins, poppins-fallback, sans-serif;
+  --heading-font-family: poppins, poppins-fallback, sans-serif;
 
   /* body sizes */
-  --body-font-size-m: 22px;
-  --body-font-size-s: 19px;
-  --body-font-size-xs: 17px;
+  --body-font-size-m: 16px;
+  --body-font-size-s: 14px;
+  --body-font-size-xs: 12px;
 
   /* heading sizes */
-  --heading-font-size-xxl: 55px;
-  --heading-font-size-xl: 44px;
-  --heading-font-size-l: 34px;
-  --heading-font-size-m: 27px;
-  --heading-font-size-s: 24px;
-  --heading-font-size-xs: 22px;
+  --heading-font-size-xxl: 18px;
+  --heading-font-size-xl: 24px;
+  --heading-font-size-l: 16px;
+  --heading-font-size-m: 16px;
+  --heading-font-size-s: 14px;
+  --heading-font-size-xs: 14px;
 
   /* nav heights */
-  --nav-height: 64px;
+  --topbar-height: 32px;
+  --nav-height: 52px;
   --breadcrumbs-height: 34px;
-  --header-height: var(--nav-height);
+  --header-height: calc(var(--topbar-height) + var(--nav-height));
 }
 
-/* fallback fonts */
+/* fallback font */
 @font-face {
-  font-family: roboto-condensed-fallback;
-  size-adjust: 88.82%;
+  font-family: poppins-fallback;
+  size-adjust: 112%;
+  ascent-override: 91%;
   src: local('Arial');
 }
 
-@font-face {
-  font-family: roboto-fallback;
-  size-adjust: 99.529%;
-  src: local('Arial');
-}
-
-@media (width >= 900px) {
+@media (width >= 768px) {
   :root {
-    /* body sizes */
-    --body-font-size-m: 18px;
-    --body-font-size-s: 16px;
-    --body-font-size-xs: 14px;
-
     /* heading sizes */
-    --heading-font-size-xxl: 45px;
-    --heading-font-size-xl: 36px;
-    --heading-font-size-l: 28px;
-    --heading-font-size-m: 22px;
-    --heading-font-size-s: 20px;
-    --heading-font-size-xs: 18px;
+    --heading-font-size-xxl: 20px;
+    --heading-font-size-xl: 32px;
+    --heading-font-size-l: 18px;
+    --heading-font-size-m: 18px;
+    --heading-font-size-s: 16px;
+    --heading-font-size-xs: 14px;
   }
 }
 
@@ -80,7 +211,7 @@ body {
   color: var(--text-color);
   font-family: var(--body-font-family);
   font-size: var(--body-font-size-m);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 body.appear {
@@ -101,7 +232,7 @@ footer .footer[data-block-status="loaded"] {
   visibility: visible;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   body[data-breadcrumbs] {
     --header-height: calc(var(--nav-height) + var(--breadcrumbs-height));
   }
@@ -116,12 +247,17 @@ h6 {
   margin-top: 0.8em;
   margin-bottom: 0.25em;
   font-family: var(--heading-font-family);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 700;
+  line-height: 1.2;
   scroll-margin: 40px;
 }
 
-h1 { font-size: var(--heading-font-size-xxl); }
+h1 {
+  font-size: var(--heading-font-size-xxl);
+  color: var(--brand-red);
+  font-weight: 600;
+}
+
 h2 { font-size: var(--heading-font-size-xl); }
 h3 { font-size: var(--heading-font-size-l); }
 h4 { font-size: var(--heading-font-size-m); }
@@ -152,7 +288,7 @@ pre {
 }
 
 main > div {
-  margin: 40px 16px;
+  margin: 32px 16px;
 }
 
 input,
@@ -162,10 +298,16 @@ button {
   font: inherit;
 }
 
+/* focus */
+:focus-visible {
+  outline: 2px solid var(--lw-color-interactive-primary-light-focus);
+  outline-offset: 2px;
+}
+
 /* links */
 a:any-link {
   color: var(--link-color);
-  text-decoration: none;
+  text-decoration: underline;
   overflow-wrap: break-word;
 }
 
@@ -182,15 +324,16 @@ button {
   max-width: 100%;
   margin: 12px 0;
   border: 2px solid transparent;
-  border-radius: 2.4em;
-  padding: 0.5em 1.2em;
+  border-radius: 100px;
+  padding: 0 24px;
   font-family: var(--body-font-family);
   font-style: normal;
-  font-weight: 500;
-  line-height: 1.25;
+  font-weight: 600;
+  font-size: var(--body-font-size-m);
+  line-height: 44px;
   text-align: center;
   text-decoration: none;
-  background-color: var(--link-color);
+  background-color: var(--dark-color);
   color: var(--background-color);
   cursor: pointer;
   overflow: hidden;
@@ -199,16 +342,21 @@ button {
 }
 
 a.button:hover,
-a.button:focus,
-button:hover,
-button:focus {
-  background-color: var(--link-hover-color);
+button:hover {
+  background-color: var(--lw-color-interactive-primary-light-hover);
   cursor: pointer;
+}
+
+a.button:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--lw-color-interactive-primary-light-focus);
+  outline-offset: 2px;
 }
 
 button:disabled,
 button:disabled:hover {
-  background-color: var(--light-color);
+  background-color: var(--lw-color-interactive-primary-light-disabled);
+  color: var(--lw-color-typography-on-disabled);
   cursor: unset;
 }
 
@@ -238,22 +386,22 @@ main img {
 
 /* sections */
 main > .section {
-  margin: 40px 0;
+  margin: 0;
 }
 
 main > .section > div {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: auto;
-  padding: 0 24px;
+  padding: 24px 16px;
 }
 
 main > .section:first-of-type {
   margin-top: 0;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   main > .section > div {
-    padding: 0 32px;
+    padding: 32px 20px;
   }
 }
 
@@ -262,5 +410,60 @@ main .section.light,
 main .section.highlight {
   background-color: var(--light-color);
   margin: 0;
-  padding: 40px 0;
+  padding: 0;
+}
+
+main .section.dark {
+  background-color: var(--dark-color);
+  color: var(--lw-color-typography-light);
+  margin: 0;
+  padding: 0;
+}
+
+main .section.dark h1,
+main .section.dark h2,
+main .section.dark h3,
+main .section.dark h4,
+main .section.dark h5,
+main .section.dark h6 {
+  color: var(--lw-color-typography-light);
+}
+
+main .section.dark a:any-link {
+  color: var(--lw-color-typography-light);
+}
+
+main .section.dark a.button:any-link,
+main .section.dark button {
+  background-color: var(--lw-color-interactive-primary-dark-enabled);
+  color: var(--dark-color);
+}
+
+main .section.dark a.button:hover,
+main .section.dark button:hover {
+  background-color: var(--lw-color-interactive-primary-dark-hover);
+}
+
+main .section.dark a.button.secondary,
+main .section.dark button.secondary {
+  background-color: unset;
+  border-color: var(--lw-color-typography-light);
+  color: var(--lw-color-typography-light);
+}
+
+/* homepage template */
+body.homepage main > .section > div {
+  padding-top: var(--lw-spacing-8);
+  padding-bottom: var(--lw-spacing-8);
+}
+
+body.homepage main > .section:first-of-type > div {
+  padding: 0;
+  max-width: 100%;
+}
+
+@media (width >= 768px) {
+  body.homepage main > .section > div {
+    padding: var(--lw-spacing-8) var(--lw-spacing-5);
+  }
 }

@@ -1,0 +1,40 @@
+{
+  "variantName": "cards-pricing",
+  "baseBlock": "cards",
+  "version": "1.0.0",
+  "created": "2026-02-18T18:22:00.000Z",
+  "sourceContext": {
+    "originUrl": "https://www.lowi.es/",
+    "originPage": "homepage",
+    "blockPosition": "middle"
+  },
+  "visualCharacteristics": {
+    "colorScheme": "light",
+    "density": "compact",
+    "purpose": "pricing-grid",
+    "imagePattern": "icon",
+    "structure": "icon + title + subtitle + price + CTA"
+  },
+  "contentPattern": {
+    "structure": "icon + title + subtitle + price + CTA link + CTA button",
+    "buttonCount": 2,
+    "imageCount": 1
+  },
+  "reuseGuidance": {
+    "suitableFor": [
+      "pricing plan pages",
+      "tariff comparison grids",
+      "product catalog pages"
+    ],
+    "notSuitableFor": [
+      "editorial content cards",
+      "team member cards",
+      "feature highlight cards"
+    ]
+  },
+  "usage": {
+    "pagesUsing": ["content/index"],
+    "reuseCount": 1,
+    "lastUsed": "2026-02-18T18:22:00.000Z"
+  }
+}

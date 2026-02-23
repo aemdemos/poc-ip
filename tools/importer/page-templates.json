@@ -1,0 +1,70 @@
+{
+  "templates": [
+    {
+      "name": "lowi-homepage",
+      "urls": ["https://www.lowi.es/"],
+      "description": "Lowi homepage with hero carousel, pricing cards, TV promo, features carousel, testimonials, and app download section",
+      "blocks": [
+        {
+          "name": "section-hero",
+          "instances": ["section.lw-layout__section:nth-of-type(1)"],
+          "section": "light"
+        },
+        {
+          "name": "carousel-promo",
+          "instances": [".lw-c-hero-banner-carousel"]
+        },
+        {
+          "name": "section-configurator",
+          "instances": ["section.lw-layout__section.lw-rounded--next"],
+          "section": "light"
+        },
+        {
+          "name": "section-pricing",
+          "instances": ["section.lw-layout__section.lw-background-white.lw-pt-2"],
+          "section": "light"
+        },
+        {
+          "name": "cards-pricing",
+          "instances": [".lw-m-cards-rate"]
+        },
+        {
+          "name": "section-tv-promo",
+          "instances": ["section.lw-layout__section.lw-background-white.lw-pt-7:nth-of-type(4)"],
+          "section": "light"
+        },
+        {
+          "name": "columns-promo",
+          "instances": [".lw-c-banner-promo"]
+        },
+        {
+          "name": "section-features",
+          "instances": ["section.lw-layout__section.lw-background-highlighted"],
+          "section": "highlight"
+        },
+        {
+          "name": "carousel-features",
+          "instances": ["section.lw-background-highlighted .lw-c-carousel"]
+        },
+        {
+          "name": "section-testimonials",
+          "instances": ["section.lw-layout__section.lw-background-white.lw-pt-7:nth-of-type(6)"],
+          "section": "light"
+        },
+        {
+          "name": "carousel-testimonial",
+          "instances": ["section.lw-background-white .lw-m-carousels:has(.lw-c-card-opinions)"]
+        },
+        {
+          "name": "section-app",
+          "instances": ["section.lw-layout__section.lw-background-black"],
+          "section": "dark"
+        },
+        {
+          "name": "columns-app",
+          "instances": [".lw-m-product-description-card"]
+        }
+      ]
+    }
+  ]
+}
