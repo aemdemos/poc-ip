@@ -1,3 +1,28 @@
+## HTML Generation and Preview (Override)
+
+**CRITICAL: Do NOT manually create or overwrite `.html` files in the content directory.**
+
+The auto-convert hook (`auto-convert-md.js`) automatically generates both `.plain.html` and `.html` whenever a `.md` file is written or edited:
+- `.plain.html` — Fragment HTML used by `aem up --html-folder` for decoration
+- `.html` — Full HTML with `<!DOCTYPE>`, `<head>` (including `head.html` scripts/styles), `<header>`, `<main>`, `<footer>`
+
+**Do NOT call `convert_markdown_to_html` to create content `.html` files.** This produces a `<body><main>` wrapper without `<!DOCTYPE>` or `<head>`, which overwrites the correct hook-generated file and breaks EDS decoration (no scripts load, no sections wrap, no blocks decorate).
+
+**Correct workflow:**
+1. Create or edit the `.md` file in the `content/` directory
+2. The hook auto-generates `.plain.html` and `.html` — no manual step needed
+3. Preview at `http://localhost:3000/{path}` — decoration works automatically
+
+**If decoration is not working (page renders without sections/blocks/styles):**
+1. Check if a manually created `.html` file exists that overwrote the hook-generated one
+2. Delete the `.html` file: `rm content/{page}.html`
+3. Re-save the `.md` file (use Edit to trigger the hook) — hook will regenerate both files
+4. Reload the preview
+
+**Note:** `convert_markdown_to_html` is still useful for Document Authoring (DA) upload workflows, but NEVER for local preview content files.
+
+---
+
 ## Custom Skills
 
 ### Design System Extraction (MUST run BEFORE page migration)

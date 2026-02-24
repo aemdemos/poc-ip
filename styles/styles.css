@@ -10,67 +10,79 @@
  * governing permissions and limitations under the License.
  */
 
+/* === Design tokens extracted from: https://www.americanhome.co.jp/ === */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   /* colors */
-  --background-color: white;
-  --light-color: #f8f8f8;
-  --dark-color: #505050;
-  --text-color: #131313;
-  --link-color: #3b63fb;
-  --link-hover-color: #1d3ecf;
-  --overlay-background-color:lightgrey;
+  --background-color: #fff;
+  --light-color: #eee;
+  --dark-color: #001871;
+  --text-color: #333;
+  --link-color: #001871;
+  --link-hover-color: #23527c;
+  --overlay-background-color: #eee;
 
   /* fonts */
-  --body-font-family: roboto, roboto-fallback, sans-serif;
-  --heading-font-family: roboto-condensed, roboto-condensed-fallback, sans-serif;
+  --body-font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic Medium', 'Yu Gothic', 'Meiryo', sans-serif;
+  --heading-font-family: var(--body-font-family);
+  --fixed-font-family: 'Menlo', 'Consolas', 'Liberation Mono', monospace;
 
-  /* body sizes */
-  --body-font-size-m: 22px;
-  --body-font-size-s: 19px;
-  --body-font-size-xs: 17px;
+  /* body sizes (mobile-first) */
+  --body-font-size-m: 16px;
+  --body-font-size-s: 14px;
+  --body-font-size-xs: 12px;
 
-  /* heading sizes */
-  --heading-font-size-xxl: 55px;
-  --heading-font-size-xl: 44px;
-  --heading-font-size-l: 34px;
-  --heading-font-size-m: 27px;
-  --heading-font-size-s: 24px;
-  --heading-font-size-xs: 22px;
+  /* heading sizes (mobile-first) */
+  --heading-font-size-xxl: 28px;
+  --heading-font-size-xl: 24px;
+  --heading-font-size-l: 20px;
+  --heading-font-size-m: 18px;
+  --heading-font-size-s: 16px;
+  --heading-font-size-xs: 14px;
 
   /* nav heights */
   --nav-height: 64px;
   --breadcrumbs-height: 34px;
   --header-height: var(--nav-height);
+
+  /* site-specific tokens */
+  --heading-color: #001871;
+  --border-color: #ddd;
+  --border-radius: 3px;
+  --box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+  --section-spacing: 0px;
+  --transition-duration: 0.2s;
+  --transition-easing: ease-out;
 }
 
-/* fallback fonts */
+/* fallback font for CJK (Noto Sans JP) */
 @font-face {
-  font-family: roboto-condensed-fallback;
-  size-adjust: 88.82%;
-  src: local('Arial');
+  font-family: 'Noto Sans JP-fallback';
+  size-adjust: 100%;
+  src: local('Hiragino Kaku Gothic ProN'), local('Yu Gothic Medium'), local('Meiryo');
 }
 
-@font-face {
-  font-family: roboto-fallback;
-  size-adjust: 99.529%;
-  src: local('Arial');
-}
-
+/* responsive adjustments — desktop */
 @media (width >= 900px) {
   :root {
-    /* body sizes */
-    --body-font-size-m: 18px;
-    --body-font-size-s: 16px;
-    --body-font-size-xs: 14px;
-
-    /* heading sizes */
-    --heading-font-size-xxl: 45px;
-    --heading-font-size-xl: 36px;
-    --heading-font-size-l: 28px;
-    --heading-font-size-m: 22px;
-    --heading-font-size-s: 20px;
-    --heading-font-size-xs: 18px;
+    /* heading sizes — desktop */
+    --heading-font-size-xxl: 32px;
+    --heading-font-size-xl: 28px;
+    --heading-font-size-l: 22px;
+    --heading-font-size-m: 20px;
+    --heading-font-size-s: 18px;
+    --heading-font-size-xs: 16px;
   }
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -80,7 +92,7 @@ body {
   color: var(--text-color);
   font-family: var(--body-font-family);
   font-size: var(--body-font-size-m);
-  line-height: 1.6;
+  line-height: 2.14;
 }
 
 body.appear {
@@ -113,16 +125,22 @@ h3,
 h4,
 h5,
 h6 {
-  margin-top: 0.8em;
-  margin-bottom: 0.25em;
+  margin-top: 0;
+  margin-bottom: 16px;
   font-family: var(--heading-font-family);
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--heading-color);
   scroll-margin: 40px;
 }
 
 h1 { font-size: var(--heading-font-size-xxl); }
-h2 { font-size: var(--heading-font-size-xl); }
+
+h2 {
+  font-size: var(--heading-font-size-xl);
+  letter-spacing: 0.5px;
+}
+
 h3 { font-size: var(--heading-font-size-l); }
 h4 { font-size: var(--heading-font-size-m); }
 h5 { font-size: var(--heading-font-size-s); }
@@ -134,8 +152,8 @@ ol,
 ul,
 pre,
 blockquote {
-  margin-top: 0.8em;
-  margin-bottom: 0.25em;
+  margin-top: 0;
+  margin-bottom: 15px;
 }
 
 code,
@@ -145,14 +163,14 @@ pre {
 
 pre {
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 6px;
   background-color: var(--light-color);
   overflow-x: auto;
   white-space: pre;
 }
 
 main > div {
-  margin: 40px 16px;
+  margin: 0 15px;
 }
 
 input,
@@ -167,6 +185,7 @@ a:any-link {
   color: var(--link-color);
   text-decoration: none;
   overflow-wrap: break-word;
+  transition: color var(--transition-duration) var(--transition-easing);
 }
 
 a:hover {
@@ -174,49 +193,37 @@ a:hover {
   text-decoration: underline;
 }
 
-/* buttons */
-a.button:any-link,
-button {
-  box-sizing: border-box;
-  display: inline-block;
-  max-width: 100%;
-  margin: 12px 0;
-  border: 2px solid transparent;
-  border-radius: 2.4em;
-  padding: 0.5em 1.2em;
-  font-family: var(--body-font-family);
-  font-style: normal;
+/* links styled as buttons — keep link appearance (no buttons on source site) */
+a.button:any-link {
+  color: var(--link-color);
   font-weight: 500;
-  line-height: 1.25;
-  text-align: center;
   text-decoration: none;
-  background-color: var(--link-color);
-  color: var(--background-color);
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 a.button:hover,
-a.button:focus,
+a.button:focus {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+/* native button elements */
+button {
+  font: inherit;
+  border: none;
+  background-color: transparent;
+  color: var(--link-color);
+  cursor: pointer;
+}
+
 button:hover,
 button:focus {
-  background-color: var(--link-hover-color);
-  cursor: pointer;
+  color: var(--link-hover-color);
 }
 
 button:disabled,
 button:disabled:hover {
-  background-color: var(--light-color);
+  color: var(--light-color);
   cursor: unset;
-}
-
-a.button.secondary,
-button.secondary {
-  background-color: unset;
-  border: 2px solid currentcolor;
-  color: var(--text-color);
 }
 
 main img {
@@ -236,25 +243,24 @@ main img {
   width: 100%;
 }
 
-/* sections */
+/* sections (full-bleed layout — inner div constrains content width) */
 main > .section {
-  margin: 40px 0;
+  margin: 0;
 }
 
 main > .section > div {
-  max-width: 1200px;
+  max-width: 85%;
   margin: auto;
-  padding: 0 24px;
+  padding: 0 15px;
 }
 
 main > .section:first-of-type {
   margin-top: 0;
 }
 
-@media (width >= 900px) {
-  main > .section > div {
-    padding: 0 32px;
-  }
+/* narrow sections — replicates the double-nested 85%-of-85% container pattern from the original site */
+main > .section.narrow > div {
+  max-width: 72.25%;
 }
 
 /* section metadata */
@@ -262,5 +268,5 @@ main .section.light,
 main .section.highlight {
   background-color: var(--light-color);
   margin: 0;
-  padding: 40px 0;
+  padding: 0;
 }

@@ -1,0 +1,29 @@
+<div><h2 id="html-generation-and-preview-override">HTML Generation and Preview (Override)</h2><p><strong>CRITICAL: Do NOT manually create or overwrite <code>.html</code> files in the content directory.</strong></p><p>The auto-convert hook (<code>auto-convert-md.js</code>) automatically generates both <code>.plain.html</code> and <code>.html</code> whenever a <code>.md</code> file is written or edited:</p><ul>
+<li><code>.plain.html</code> — Fragment HTML used by <code>aem up --html-folder</code> for decoration</li>
+<li><code>.html</code> — Full HTML with <code>&#x3C;!DOCTYPE></code>, <code>&#x3C;head></code> (including <code>head.html</code> scripts/styles), <code>&#x3C;header></code>, <code>&#x3C;main></code>, <code>&#x3C;footer></code></li>
+</ul><p><strong>Do NOT call <code>convert_markdown_to_html</code> to create content <code>.html</code> files.</strong> This produces a <code>&#x3C;body>&#x3C;main></code> wrapper without <code>&#x3C;!DOCTYPE></code> or <code>&#x3C;head></code>, which overwrites the correct hook-generated file and breaks EDS decoration (no scripts load, no sections wrap, no blocks decorate).</p><p><strong>Correct workflow:</strong></p><ol>
+<li>Create or edit the <code>.md</code> file in the <code>content/</code> directory</li>
+<li>The hook auto-generates <code>.plain.html</code> and <code>.html</code> — no manual step needed</li>
+<li>Preview at <code>http://localhost:3000/{path}</code> — decoration works automatically</li>
+</ol><p><strong>If decoration is not working (page renders without sections/blocks/styles):</strong></p><ol>
+<li>Check if a manually created <code>.html</code> file exists that overwrote the hook-generated one</li>
+<li>Delete the <code>.html</code> file: <code>rm content/{page}.html</code></li>
+<li>Re-save the <code>.md</code> file (use Edit to trigger the hook) — hook will regenerate both files</li>
+<li>Reload the preview</li>
+</ol><p><strong>Note:</strong> <code>convert_markdown_to_html</code> is still useful for Document Authoring (DA) upload workflows, but NEVER for local preview content files.</p></div>
+<div><h2 id="custom-skills">Custom Skills</h2><h3 id="design-system-extraction-must-run-before-page-migration">Design System Extraction (MUST run BEFORE page migration)</h3><p><strong>CRITICAL: When a user asks to migrate, import, or convert a site or page, ALWAYS suggest running the design system extraction skill FIRST if <code>styles/styles.css</code> still contains EDS boilerplate defaults. Do not proceed with page migration until the design foundation is set.</strong></p><p><strong>Trigger patterns:</strong></p><ul>
+<li>User says: "migrate", "import", "convert" any site or page → check if design system was already extracted. If not, suggest it first.</li>
+<li>User says: "extract design", "get styling", "setup styles", "general styling", "design system" → invoke directly.</li>
+<li>User says: "start fresh", "new migration" → invoke as first step.</li>
+</ul><p><strong>How to invoke:</strong>
+Read and follow the complete workflow in <code>.claude/skills/get-general-styling.md</code>. Execute every phase in order. Do not skip phases. Mark each phase complete only after its validation checklist passes.</p><p><strong>When to skip:</strong></p><ul>
+<li>Only skip if <code>migration-work/design-system-extracted.json</code> exists AND its <code>sourceDomain</code> matches the site being migrated.</li>
+<li>If migrating a DIFFERENT source site, run the extraction again.</li>
+</ul><p><strong>Bypass directive for other skills:</strong>
+Once <code>migration-work/design-system-extracted.json</code> exists with <code>"status": "complete"</code>, the following rules apply to ALL other skills during this migration session:</p><ol>
+<li><strong>Do NOT re-extract design tokens.</strong> The <code>excat-complete-design-expert</code> skill and any design/style extraction steps within <code>excat-page-migration</code> or other skills MUST be skipped entirely. The design foundation is already set.</li>
+<li><strong>Do NOT overwrite <code>styles/styles.css</code></strong> with boilerplate or re-extracted values. Only additive changes are allowed (e.g., adding block-specific CSS that does not conflict with the extracted design tokens).</li>
+<li><strong>Do NOT re-extract colors, typography, spacing, or breakpoints.</strong> These are already captured in the <code>migration-work/*.json</code> files and applied to <code>styles/styles.css</code>.</li>
+<li><strong>DO allow block-specific styling</strong> — blocks may still get their own CSS in <code>blocks/{blockname}/{blockname}.css</code>. This bypass only covers site-wide design tokens, not block-level styling.</li>
+<li><strong>Check before any design operation:</strong> Before running any design-related skill or sub-step, first check: <code>ls migration-work/design-system-extracted.json</code>. If it exists, read it, confirm the domain matches, and skip the design extraction work.</li>
+</ol></div>
