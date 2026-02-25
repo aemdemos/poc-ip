@@ -1,0 +1,34 @@
+{
+  "templates": [
+    {
+      "name": "americanhome-homepage",
+      "urls": [
+        "https://www.americanhome.co.jp/"
+      ],
+      "description": "American Home Insurance corporate homepage with hero carousel, product promotions, policyholder services, company stats, and news announcements",
+      "blocks": [
+        {
+          "name": "carousel",
+          "instances": [
+            ".hideinmobile .cmp-carousel"
+          ]
+        },
+        {
+          "name": "columns",
+          "instances": [
+            ".flexbox-container:has(> .cmp-container > .aem-Grid > .image.halfwidth)",
+            ".aem-Grid:has(> .flexbox-container.thirdwidth)"
+          ]
+        },
+        {
+          "name": "section-light",
+          "instances": [
+            ".ltgray-bg",
+            ".container:has(.teaserflex.dttitlecoredgray)"
+          ],
+          "section": "light"
+        }
+      ]
+    }
+  ]
+}

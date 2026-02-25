@@ -83,6 +83,52 @@ function buildAutoBlocks() {
   }
 }
 
+/**
+ * Processes the page-level .metadata div: extracts key/value pairs into
+ * <meta> tags in <head>, sets <title>, then removes the div so that
+ * decorateBlocks never treats it as a block.
+ * @param {Element} main The main element
+ */
+function processPageMetadata(main) {
+  const metadataBlock = main.querySelector('.metadata');
+  if (!metadataBlock) return;
+
+  const rows = [...metadataBlock.querySelectorAll(':scope > div')];
+  rows.forEach((row) => {
+    const cells = [...row.children];
+    if (cells.length < 2) return;
+
+    const key = cells[0].textContent.trim().toLowerCase();
+    if (!key) return;
+
+    // Strip HTML to get plain text value
+    const tmp = document.createElement('div');
+    tmp.innerHTML = cells[1].innerHTML;
+    const value = tmp.textContent.trim();
+
+    // Create <meta> tag if not already present
+    const attr = key.includes(':') ? 'property' : 'name';
+    if (!document.head.querySelector(`meta[${attr}="${key}"]`)) {
+      const meta = document.createElement('meta');
+      meta.setAttribute(attr, key);
+      meta.setAttribute('content', value);
+      document.head.appendChild(meta);
+    }
+
+    if (key === 'title' && value) {
+      document.title = value;
+    }
+  });
+
+  // Remove the section that contains the metadata div
+  const section = metadataBlock.closest('.section');
+  if (section) {
+    section.remove();
+  } else {
+    metadataBlock.remove();
+  }
+}
+
 function a11yLinks(main) {
   const links = main.querySelectorAll('a');
   links.forEach((link) => {
@@ -106,6 +152,7 @@ export function decorateMain(main) {
   decorateIcons(main);
   buildAutoBlocks(main);
   decorateSections(main);
+  processPageMetadata(main);
   decorateBlocks(main);
   // add aria-label to links
   a11yLinks(main);

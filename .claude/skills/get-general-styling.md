@@ -628,12 +628,14 @@ element: body link
 }
 ```
 
-**Step 5 — Repeat for a button element** (if buttons exist on the page).
+**Step 5 — Repeat for a button element** (only if a **real** button exists on the page — i.e., a button with non-transparent background-color AND not an icon font. Skip this step if the only buttons found were transparent-background icon elements).
 
 Use the same hover-then-evaluate pattern:
 1. Read button pre-hover styles (background-color, color, border-color)
 2. `browser_hover` on the button ref
 3. Read button post-hover styles
+
+If no real button was found, set `button` to `null` in the interactions output (not derived from link hover states).
 
 **Step 6 — Extract hover rules from raw CSS as backup.**
 
@@ -717,14 +719,17 @@ Use this decision tree in order — stop at the first match:
 
 #### Heuristic: Button colors
 
-1. `primaryBg` = `computed-styles.buttons[0].background-color` (first button found)
+A button counts as "detected" only if ALL of these are true:
+- `computed-styles.buttons` array is non-empty
+- `buttons[0].background-color` is **not** `transparent`, `rgba(0,0,0,0)`, or any fully-transparent value
+- `buttons[0].font-family` is **not** an icon font (e.g., `custom-icons`, `FontAwesome`, `Material Icons`)
+
+If a real button is detected:
+1. `primaryBg` = `computed-styles.buttons[0].background-color`
 2. `primaryText` = `computed-styles.buttons[0].color`
 3. `primaryHoverBg` = button hover state from Phase 3.4, Step 5. If not captured → darken primaryBg by 10-15%.
 
-If no buttons were found on the page → derive from link color:
-- `primaryBg` = link color
-- `primaryText` = body background color (white text on colored button)
-- `primaryHoverBg` = link hover color
+If NO real button is detected (no buttons found, or only transparent/icon-font elements matched) → set `buttons` to `null` in color-palette.json. Do NOT derive button background colors from link text colors — that is a color-role mismatch (link `color` is a text property, button `background-color` is a fill property). The CSS template will use its built-in fallback (`var(--link-color)` / `var(--link-hover-color)`) which keeps values connected to the design tokens via CSS variables.
 
 ### 3.6 Write output
 
@@ -757,11 +762,7 @@ Save to `migration-work/color-palette.json`:
     "default": "#dddddd",
     "focus": "#0066cc"
   },
-  "buttons": {
-    "primaryBg": "#003366",
-    "primaryText": "#ffffff",
-    "primaryHoverBg": "#004499"
-  },
+  "buttons": null,
   "gradients": [],
   "allUniqueColors": ["#003366", "#0066cc", "#333333", "#666666", "#ffffff", "#f5f5f5", "#dddddd"]
 }
@@ -774,7 +775,7 @@ Save to `migration-work/color-palette.json`:
 - [ ] Link default color captured
 - [ ] Link hover color captured (via Playwright hover sequence, not guessed)
 - [ ] At least one brand/accent color identified
-- [ ] Button hover state captured (if buttons exist)
+- [ ] Button colors captured (if real buttons with non-transparent background exist), or set to `null` if only transparent/icon-font buttons found
 - [ ] All unique colors listed in `allUniqueColors` array
 - [ ] Each color has a category assignment
 
@@ -1108,6 +1109,86 @@ Organize by context:
 }
 ```
 
+### 5.1b Measure section spacing from the live page
+
+The computed-styles `sections` entry (Phase 3) samples only a few elements using generic selectors (`main > div`, `main > section`, `section`). These may not capture the actual section containers on CMS-heavy sites. Use the per-section data from **Phase 7, Step 7.2** (which walks the real DOM structure) for a more accurate picture.
+
+If Phase 7 has already run, read its output. If not, run the following to collect section-level vertical spacing across ALL visible sections:
+
+**Tool:** `browser_evaluate`
+
+```js
+() => {
+  // Reuse the same section-parent detection as Phase 7
+  const findSectionParent = () => {
+    for (const sel of ['main', '[role="main"]', 'main > div', 'main > section']) {
+      const el = document.querySelector(sel);
+      if (el && el.children.length >= 2) return el;
+    }
+    for (const sel of [
+      '[class*="Grid"] > [class*="Grid"]',
+      '[class*="container"] > [class*="Grid"]',
+      '.root [class*="Grid"]',
+    ]) {
+      const candidates = document.querySelectorAll(sel);
+      for (const c of candidates) {
+        if (c.children.length >= 3) return c;
+      }
+    }
+    return document.querySelector('main') || document.body;
+  };
+
+  const parent = findSectionParent();
+  const sections = [];
+  Array.from(parent.children).forEach((el, i) => {
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none') return;
+    sections.push({
+      index: i,
+      marginTop: cs.marginTop,
+      marginBottom: cs.marginBottom,
+      paddingTop: cs.paddingTop,
+      paddingBottom: cs.paddingBottom,
+    });
+  });
+
+  // Compute statistics
+  const vals = (prop) => sections.map(s => parseFloat(s[prop]) || 0);
+  const mode = (arr) => {
+    const freq = {};
+    arr.forEach(v => { freq[v] = (freq[v] || 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0];
+  };
+  const median = (arr) => {
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  };
+
+  const marginTops = vals('marginTop');
+  const marginBottoms = vals('marginBottom');
+  const paddingTops = vals('paddingTop');
+  const paddingBottoms = vals('paddingBottom');
+
+  return JSON.stringify({
+    sectionCount: sections.length,
+    sections,
+    stats: {
+      marginTop: { mode: mode(marginTops), median: median(marginTops), values: [...new Set(marginTops)].sort((a,b)=>a-b) },
+      marginBottom: { mode: mode(marginBottoms), median: median(marginBottoms), values: [...new Set(marginBottoms)].sort((a,b)=>a-b) },
+      paddingTop: { mode: mode(paddingTops), median: median(paddingTops), values: [...new Set(paddingTops)].sort((a,b)=>a-b) },
+      paddingBottom: { mode: mode(paddingBottoms), median: median(paddingBottoms), values: [...new Set(paddingBottoms)].sort((a,b)=>a-b) },
+    }
+  }, null, 2);
+}
+```
+
+**Interpretation:**
+
+- If the **mode** of `marginTop` and `marginBottom` is `0` → most sections have no vertical spacing at the section level. The `sectionPaddingVertical` token should be `0px`, and any non-zero values are exceptions (handled per-section, not as a global default).
+- If the mode is non-zero (e.g., `40`) → that's the standard section spacing.
+- If values vary widely with no clear mode → use the **median** and note as irregular.
+
 ### 5.2 Scan raw CSS for spacing patterns
 
 **Tool:** Grep
@@ -1139,11 +1220,11 @@ Collect all unique numeric spacing values (deduplicated, sorted ascending).
 
 | Token | How to determine | Fallback |
 |-------|-----------------|----------|
-| `sectionPaddingVertical` | Most common `padding-top` or `padding-bottom` from `computed-styles.sections`. If sections have varying padding, use the **median** value. | `40px` |
+| `sectionPaddingVertical` | Use the **mode** of `marginTop` + `paddingTop` values from Step 5.1b (live section measurement). If the mode is `0` across most sections, use `0px` — this indicates the site uses tight section spacing or utility classes. Only use a non-zero value if it is the **dominant** pattern. If sections have varying padding with no clear mode, use the **median**. | `40px` |
 | `headingMarginTop` | `computed-styles.headings.h2.margin-top`. Use h2 (most representative). | `0.8em` |
 | `headingMarginBottom` | `computed-styles.headings.h2.margin-bottom`. | `0.25em` |
 | `paragraphMarginBottom` | `computed-styles.text.p.margin-bottom`. | `0.25em` |
-| `containerPaddingHorizontal` | `computed-styles.containers[0].padding-left`. Use the first container (outermost). | `24px` |
+| `containerPaddingHorizontal` | Use the value from Phase 7, Step 7.3.2 (innermost content-constraining container padding). This is more accurate than `computed-styles.containers[0].padding-left` which may match an outer non-constraining container. Only fall back to `computed-styles.containers[0]` if Phase 7 data is not yet available. | `24px` |
 | `gap` | Most common `gap` value from `computed-styles.sections` or `containers`. If not set (no flex/grid), use `16px`. | `16px` |
 
 **em vs px:** If the source site uses `em` values for heading/paragraph margins (common), keep them as `em` — they scale better. Only convert to `px` if the site uses explicit pixel values.
@@ -1159,23 +1240,50 @@ Save to `migration-work/spacing.json`:
   "scale": [0, 4, 8, 16, 24, 32, 48, 64],
   "scaleBase": "8px",
   "tokens": {
-    "sectionPaddingVertical": "48px",
+    "sectionPaddingVertical": "0px",
     "headingMarginTop": "32px",
     "headingMarginBottom": "12px",
     "paragraphMarginBottom": "16px",
-    "containerPaddingHorizontal": "24px",
+    "containerPaddingHorizontal": "15px",
     "gap": "16px"
   },
-  "allValues": ["0px", "4px", "8px", "12px", "16px", "24px", "32px", "40px", "48px", "64px", "80px"]
+  "sectionSpacingDetail": {
+    "marginTopMode": "0px",
+    "marginBottomMode": "0px",
+    "paddingTopMode": "0px",
+    "paddingBottomMode": "0px",
+    "hasVariance": true,
+    "exceptionalValues": ["40px"],
+    "note": "Most sections have 0px margin/padding. One section has 40px margin-top."
+  },
+  "allValues": ["0px", "4px", "8px", "12px", "15px", "16px", "24px", "32px", "40px", "48px", "64px", "80px"]
 }
 ```
 
+**Key: `sectionSpacingDetail`**
+
+This object captures per-section spacing variance discovered in Step 5.1b:
+
+| Field | Description |
+|-------|-------------|
+| `marginTopMode` | The most common `margin-top` across all visible sections |
+| `marginBottomMode` | The most common `margin-bottom` across all visible sections |
+| `paddingTopMode` | The most common `padding-top` across all visible sections |
+| `paddingBottomMode` | The most common `padding-bottom` across all visible sections |
+| `hasVariance` | `true` if any section differs from the mode |
+| `exceptionalValues` | Non-zero values that differ from the mode (for awareness) |
+| `note` | Human-readable summary |
+
+The CSS template uses `sectionPaddingVertical` (the mode) as the global `main > .section` margin. If this is `0px`, sections are tightly stacked and any spacing comes from inner content, not section wrappers.
+
 ### Validation
 
-- [ ] Section top/bottom spacing captured (from `sections` in computed-styles.json)
+- [ ] Section top/bottom spacing captured using **live section measurement** (Step 5.1b), not just computed-styles samples
+- [ ] `sectionSpacingDetail` recorded with mode, variance flag, and exceptional values
+- [ ] `sectionPaddingVertical` reflects the **mode** (most common value), not a single sample or fallback
 - [ ] Heading margins captured for at least h2 and h3
 - [ ] Paragraph bottom margin captured
-- [ ] Container horizontal padding captured
+- [ ] `containerPaddingHorizontal` sourced from Phase 7 innermost container (not a generic container match)
 - [ ] Spacing scale pattern identified (or explicitly noted as irregular)
 - [ ] All unique spacing values listed in `allValues`
 
@@ -1241,7 +1349,7 @@ The **desktop breakpoint** is the single most important one — it determines wh
 
 1. **Find the breakpoint with the highest `matchCount`** (most media query rules). This is usually the primary layout breakpoint.
 2. **If two breakpoints are close in count**, prefer the one in the 768px–1024px range (that's the tablet-to-desktop transition).
-3. **Cross-reference with the content max-width** from Phase 7. The desktop breakpoint should be LESS than the content max-width. Example: if content max-width is 1200px, the desktop breakpoint is likely 768px or 1024px (not 1200px, which would be the wide breakpoint).
+3. **Cross-reference with the content max-width** from Phase 7. The desktop breakpoint should be LESS than the content max-width. Example: if content max-width is 1200px (or the pixel equivalent of a percentage-based max-width like 85%), the desktop breakpoint is likely 768px or 1024px (not 1200px, which would be the wide breakpoint). If the content max-width is percentage-based, use the `contentMaxWidthPx` value from layout.json for comparison.
 
 #### Heuristic: Mapping to EDS breakpoints
 
@@ -1303,6 +1411,8 @@ Save to `migration-work/breakpoints.json`:
 
 ## Phase 7: Extract Layout and Container Widths
 
+This phase identifies how the source site constrains content width, pads content areas, and nests containers. The goal is to produce layout values that replicate the source site's content-centering strategy — **not just the rendered pixel values**, but the underlying mechanism (percentage-based max-width, fixed pixel max-width, padding-only constraint, etc.).
+
 ### 7.1 Collect from computed styles
 
 Read `migration-work/computed-styles.json`. Extract from these entries:
@@ -1312,48 +1422,206 @@ Read `migration-work/computed-styles.json`. Extract from these entries:
 - `nav` → `height`
 - `sections` → `max-width`, `display`, `gap`
 
-### 7.2 Measure actual content width via Playwright
+### 7.2 Deep-measure content containers via Playwright
 
-Computed styles may show `max-width: none` if the constraint is on a parent. Measure the actual rendered width.
+Computed styles from Phase 3 may show `max-width: none` if the constraint is on a deeper nested container. This step walks into the actual DOM to find the **innermost element that constrains content width** and measures its properties precisely.
 
 **Tool:** `browser_evaluate`
 
 ```js
 () => {
-  const measure = (selector) => {
-    const el = document.querySelector(selector);
-    if (!el) return null;
-    const rect = el.getBoundingClientRect();
-    const cs = getComputedStyle(el);
-    return {
-      selector,
-      renderedWidth: Math.round(rect.width),
-      maxWidth: cs.maxWidth,
-      paddingLeft: cs.paddingLeft,
-      paddingRight: cs.paddingRight,
-      marginLeft: cs.marginLeft,
-      marginRight: cs.marginRight,
-    };
+  const cs = (el) => el ? getComputedStyle(el) : null;
+
+  // --- Header / Nav ---
+  const headerHeight = (() => {
+    const h = document.querySelector('header, [role="banner"]');
+    return h ? Math.round(h.getBoundingClientRect().height) : null;
+  })();
+  const navHeight = (() => {
+    const n = document.querySelector('nav');
+    return n ? Math.round(n.getBoundingClientRect().height) : null;
+  })();
+
+  // --- Find the main content area ---
+  // Try common patterns: <main>, [role="main"], first large container child of body
+  const mainEl = document.querySelector('main, [role="main"]')
+    || document.querySelector('[class*="content"]')
+    || document.body;
+  const mainRect = mainEl.getBoundingClientRect();
+  const mainCs = cs(mainEl);
+
+  // --- Walk visible sections and their inner containers ---
+  //
+  // Strategy: Find the main structural wrapper, then iterate its
+  // visible children (the "sections"). For each section, walk
+  // inward to find the innermost container that constrains width
+  // (via max-width, a narrower rendered width, or horizontal padding).
+  //
+  // We collect layout props for EVERY visible section so that
+  // Phase 5 and the CSS template can reason about variance.
+
+  // Heuristic: find the element whose direct children are the
+  // page-level "sections". This is typically <main>, <main> > div,
+  // or a deep grid/container wrapper.
+  const findSectionParent = () => {
+    // Try standard selectors first
+    for (const sel of [
+      'main',
+      '[role="main"]',
+      'main > div',
+      'main > section',
+    ]) {
+      const el = document.querySelector(sel);
+      if (el && el.children.length >= 2) return el;
+    }
+    // AEM / CMS patterns: look for a grid wrapper with many children
+    for (const sel of [
+      '[class*="Grid"] > [class*="Grid"]',
+      '[class*="container"] > [class*="Grid"]',
+      '.root [class*="Grid"]',
+    ]) {
+      const candidates = document.querySelectorAll(sel);
+      for (const c of candidates) {
+        if (c.children.length >= 3) return c;
+      }
+    }
+    return mainEl;
   };
 
+  const sectionParent = findSectionParent();
+  const viewportWidth = window.innerWidth;
+
+  const sections = [];
+  Array.from(sectionParent.children).forEach((section, i) => {
+    const sCs = cs(section);
+    if (sCs.display === 'none') return;
+
+    const sectionData = {
+      index: i,
+      tag: section.tagName,
+      className: (section.className || '').substring(0, 120),
+      width: sCs.width,
+      maxWidth: sCs.maxWidth,
+      paddingTop: sCs.paddingTop,
+      paddingBottom: sCs.paddingBottom,
+      paddingLeft: sCs.paddingLeft,
+      paddingRight: sCs.paddingRight,
+      marginTop: sCs.marginTop,
+      marginBottom: sCs.marginBottom,
+      backgroundColor: sCs.backgroundColor,
+      innerContainers: []
+    };
+
+    // Walk inward to find content-constraining containers
+    const walkInner = (el, depth) => {
+      if (depth > 6) return;
+      Array.from(el.children).slice(0, 12).forEach(child => {
+        const childCs = cs(child);
+        if (childCs.display === 'none') return;
+        const mw = childCs.maxWidth;
+        const hasMW = mw !== 'none' && mw !== '0px';
+        const hasPad = childCs.paddingLeft !== '0px' || childCs.paddingRight !== '0px';
+        const ml = childCs.marginLeft;
+        const mr = childCs.marginRight;
+        const centered = (ml === 'auto' || mr === 'auto')
+          || (ml === mr && ml !== '0px');
+
+        if (hasMW || hasPad || centered) {
+          sectionData.innerContainers.push({
+            depth,
+            tag: child.tagName,
+            className: (child.className || '').substring(0, 80),
+            renderedWidth: Math.round(child.getBoundingClientRect().width),
+            maxWidth: mw,
+            paddingLeft: childCs.paddingLeft,
+            paddingRight: childCs.paddingRight,
+            marginLeft: ml,
+            marginRight: mr,
+          });
+        }
+        walkInner(child, depth + 1);
+      });
+    };
+
+    walkInner(section, 0);
+    sections.push(sectionData);
+  });
+
   return JSON.stringify({
-    main: measure('main, [role="main"]'),
-    firstContainer: measure('[class*="container"], [class*="wrapper"], main > div'),
-    header: measure('header, [role="banner"]'),
-    nav: measure('nav'),
-    headerHeight: (() => {
-      const h = document.querySelector('header, [role="banner"]');
-      return h ? Math.round(h.getBoundingClientRect().height) : null;
-    })(),
-    navHeight: (() => {
-      const n = document.querySelector('nav');
-      return n ? Math.round(n.getBoundingClientRect().height) : null;
-    })(),
+    viewportWidth,
+    headerHeight,
+    navHeight,
+    main: {
+      renderedWidth: Math.round(mainRect.width),
+      maxWidth: mainCs.maxWidth,
+      paddingLeft: mainCs.paddingLeft,
+      paddingRight: mainCs.paddingRight,
+    },
+    sectionCount: sections.length,
+    sections,
   }, null, 2);
 }
 ```
 
-### 7.3 Scan raw CSS for max-width patterns
+### 7.3 Analyze section-level layout patterns
+
+From the Step 7.2 output, build a summary of the content-constraining strategy.
+
+#### 7.3.1 Identify max-width type (percentage vs pixel)
+
+For each section's `innerContainers`, look at the `maxWidth` property:
+
+- **Percentage-based** (e.g., `85%`, `90%`): Record the percentage AND the computed `renderedWidth` at the measured viewport. Example: `maxWidth: "85%"` → `renderedWidth: 1224` at 1440px viewport.
+- **Pixel-based** (e.g., `1200px`, `1140px`): Record directly.
+- **None** (no `maxWidth` on any inner container): The section is full-bleed with no content constraint — content fills the viewport.
+
+**Decision logic for `contentMaxWidth`:**
+
+1. Collect all unique `maxWidth` values from the innermost constraining container of each section (the first `innerContainer` in each section's array, or the section itself if it has `maxWidth`).
+2. If the **majority** of sections share the same `maxWidth` → use that as `contentMaxWidth`.
+3. **If the shared value is a percentage** (e.g., `85%`): set `contentMaxWidth` to the percentage string (e.g., `"85%"`), AND record `contentMaxWidthPx` as the computed pixel equivalent at the measured viewport. Both go into `layout.json`.
+4. **If the shared value is a pixel value** (e.g., `1200px`): set `contentMaxWidth` to that value. `contentMaxWidthPx` is the same value.
+5. **If sections have mixed or no max-width**: use the most common rendered content width (rounded to nearest 10px) as `contentMaxWidth` in pixels, and note `"contentMaxWidthType": "measured"`.
+
+#### 7.3.2 Identify inner container padding
+
+For the innermost content-constraining containers identified above:
+
+1. Collect all unique `paddingLeft` / `paddingRight` values.
+2. Use the **mode** (most frequent) as `containerPadding.left` / `containerPadding.right`.
+3. If all inner containers have `0px` padding but sections themselves have padding, use the section-level padding instead.
+4. **Cross-validate:** The rendered content width should approximately equal `(max-width constraint) - paddingLeft - paddingRight`. If it doesn't, the padding source may be at a different nesting level — walk up.
+
+#### 7.3.3 Detect nested container pattern
+
+Some sites constrain content through multiple nested layers (e.g., `max-width: 85%` on an outer container, then another `max-width: 85%` on an inner one, yielding ~72% effective width).
+
+1. For each section, count how many levels of `innerContainers` exist with a non-`none` `maxWidth`.
+2. If **2 or more** levels have `maxWidth` constraints → record as `nestedContainers: true` in layout.json.
+3. Record the effective innermost `renderedWidth` as `nestedContentWidth`.
+4. If nested containers are detected, compute the **effective percentage** for the narrow constraint:
+   - If both levels use percentage max-width: multiply them (e.g., `85% × 85% = 72.25%`)
+   - If one level is pixel-based and the other percentage-based: convert to a single effective percentage relative to the viewport at the reference width (1440px), or use the pixel value directly.
+   - Record this as `nestedEffectiveMaxWidth` in layout.json (e.g., `"72.25%"` or `"1015px"`).
+5. **CSS generation note:** When `nestedContainers: true`, the CSS template MUST generate a `.section.narrow` variant that applies the tighter constraint. EDS uses a single `main > .section > div` container, so the default CSS maps to the **outermost** content constraint. Sections that originally had double nesting should use `Section Metadata` with `style | narrow` to get the tighter width.
+6. During page migration, any section identified as having double-nested containers should receive `Section Metadata` with `style | narrow` (or `style | light, narrow` if it also has a background style).
+
+#### 7.3.4 Detect full-bleed sections
+
+A section is "full-bleed" when:
+- The section itself has `maxWidth: none` or no `maxWidth`
+- The section has `padding: 0` on all sides
+- The section spans the full viewport width
+- Background color is applied at the section level (not the inner container)
+
+If **all or most** sections are full-bleed (content is constrained only by inner containers, not the section wrapper):
+- Set `sectionLayout: "full-bleed"` in layout.json
+- This means `main > .section` should NOT have horizontal padding or margin — only `main > .section > div` should constrain width.
+
+If sections themselves have max-width or padding:
+- Set `sectionLayout: "constrained"`
+
+### 7.4 Scan raw CSS for max-width patterns
 
 **Tool:** Grep
 
@@ -1364,9 +1632,28 @@ output_mode: content
 head_limit: 30
 ```
 
-Look for values like `1200px`, `1140px`, `1280px`, `1440px` — these are likely content container widths.
+Look for values like `1200px`, `1140px`, `1280px`, `1440px`, or percentage values like `85%`, `90%`, `80%`. Record both pixel and percentage max-width values found.
 
-### 7.4 Write output
+### 7.5 Determine desktop container padding
+
+The container padding may differ between mobile and desktop. From Step 7.2, the measurement was taken at one viewport width. To check for responsive padding changes:
+
+1. Check the raw CSS corpus for media-query-scoped padding values on container-like selectors.
+2. If the Phase 6 breakpoints show a desktop breakpoint, check whether any padding rules apply above that breakpoint.
+3. If no responsive padding difference is found in the CSS, use the same padding for both mobile and desktop (do NOT invent a `32px` desktop override).
+
+**Tool:** Grep
+
+```
+pattern: (padding-left|padding-right|padding)\s*:\s*[^;]+
+path: migration-work/raw-css-corpus.txt
+output_mode: content
+head_limit: 40
+```
+
+Cross-reference any padding values found with the container padding from Step 7.3.2. Only record a separate `desktopContainerPadding` if there is explicit CSS evidence for a different value at a larger breakpoint.
+
+### 7.6 Write output
 
 **Tool:** Write
 
@@ -1374,21 +1661,49 @@ Save to `migration-work/layout.json`:
 
 ```json
 {
-  "contentMaxWidth": "1200px",
-  "headerHeight": "64px",
+  "contentMaxWidth": "85%",
+  "contentMaxWidthPx": "1224px",
+  "contentMaxWidthType": "percentage",
+  "nestedContainers": false,
+  "nestedContentWidth": null,
+  "nestedEffectiveMaxWidth": null,
+  "sectionLayout": "full-bleed",
+  "headerHeight": "162px",
   "navHeight": "64px",
-  "containerPadding": { "left": "24px", "right": "24px" },
+  "containerPadding": { "left": "15px", "right": "15px" },
+  "desktopContainerPadding": null,
   "mainDisplay": "block",
   "sectionGap": "0px",
-  "commonMaxWidths": ["1200px", "1440px"]
+  "commonMaxWidths": ["85%", "1200px"],
+  "note": "Site uses full-bleed sections with percentage-based inner container max-width (85%). Content is centered via auto margins on the inner container."
 }
 ```
 
+**Field descriptions:**
+
+| Field | Description |
+|-------|-------------|
+| `contentMaxWidth` | The max-width value as written in CSS (may be `%` or `px`) |
+| `contentMaxWidthPx` | The computed pixel equivalent at the measured viewport width |
+| `contentMaxWidthType` | `"percentage"`, `"pixel"`, or `"measured"` |
+| `nestedContainers` | Whether content is constrained through 2+ nested max-width layers |
+| `nestedContentWidth` | The innermost effective content width if nested (else `null`) |
+| `nestedEffectiveMaxWidth` | The CSS `max-width` value to apply on `.section.narrow > div` (e.g., `"72.25%"`). Computed by multiplying nested percentage constraints. `null` if `nestedContainers` is `false`. |
+| `sectionLayout` | `"full-bleed"` (sections span viewport, inner div constrains) or `"constrained"` (sections themselves are narrowed) |
+| `containerPadding` | Horizontal padding on the content-constraining container |
+| `desktopContainerPadding` | Different padding at desktop breakpoint, or `null` if same as mobile |
+
 ### Validation
 
-- [ ] Content area max-width captured (either from CSS or measured rendered width)
+- [ ] Content area max-width captured — either from CSS or measured rendered width
+- [ ] `contentMaxWidthType` is set (`"percentage"`, `"pixel"`, or `"measured"`)
+- [ ] If percentage-based max-width: both percentage string AND pixel equivalent recorded
 - [ ] Header height captured → maps to `--nav-height`
-- [ ] Container horizontal padding captured
+- [ ] Container horizontal padding captured from the **innermost** content-constraining container (not a generic `[class*="container"]` match)
+- [ ] `desktopContainerPadding` is `null` OR backed by CSS evidence (NOT a fabricated `32px` default)
+- [ ] `sectionLayout` is set (`"full-bleed"` or `"constrained"`)
+- [ ] `nestedContainers` is documented (true/false)
+- [ ] If `nestedContainers` is true: `nestedEffectiveMaxWidth` is computed (e.g., `"72.25%"`) and `nestedContentWidth` recorded
 - [ ] At least one max-width value found in raw CSS or computed styles
 
 ---
@@ -1657,11 +1972,7 @@ Save to `migration-work/interactions.json`:
       "after": { "color": "#004499", "textDecoration": "underline" },
       "changes": ["color", "textDecoration"]
     },
-    "button": {
-      "before": { "backgroundColor": "#003366", "color": "#ffffff" },
-      "after": { "backgroundColor": "#004499", "color": "#ffffff" },
-      "changes": ["backgroundColor"]
-    }
+    "button": null
   },
   "focusStyles": {
     "outline": "2px solid #0066cc",
@@ -1675,7 +1986,7 @@ Save to `migration-work/interactions.json`:
 ### Validation
 
 - [ ] Link hover color change captured (before + after)
-- [ ] Button hover state captured (before + after), or noted as "no buttons on page"
+- [ ] Button hover state captured (before + after) if real buttons exist, or set to `null` if only transparent/icon-font buttons found
 - [ ] Transition duration and easing captured
 - [ ] Focus/focus-visible outline styles captured
 - [ ] Hover rules from raw CSS captured as backup
@@ -1915,7 +2226,7 @@ Below is the **complete template**. Every `{PLACEHOLDER}` must be replaced with 
   --border-color: {color-palette.borders.default};
   --border-radius: {decoration.borderRadius.small or the most common border-radius};
   --box-shadow: {decoration.boxShadow.subtle or 'none' if no shadows found};
-  --section-spacing: {spacing.tokens.sectionPaddingVertical};
+  --section-spacing: {spacing.tokens.sectionPaddingVertical — use the mode from Step 5.1b; may be '0px' if sections are tightly stacked};
   --transition-duration: {interactions.transitions.duration};
   --transition-easing: {interactions.transitions.easing};
 }
@@ -2142,6 +2453,8 @@ figcaption {
 main > div {
   margin: {spacing.tokens.sectionPaddingVertical or '40px'} {spacing.tokens.containerPaddingHorizontal or '16px'};
 }
+/* NOTE: The 'main > div' rule above is the EDS fallback for unsectioned content.
+   The section rules below (main > .section) take precedence for sectioned pages. */
 
 input,
 textarea,
@@ -2164,6 +2477,12 @@ a:hover {
 }
 
 /* buttons — source: color-palette.json, decoration.json, interactions.json */
+/*
+ * CONDITIONAL: Use ONE of the two blocks below depending on whether
+ * color-palette.buttons is null or has values.
+ */
+
+/* === IF color-palette.buttons is NOT null (real buttons detected) === */
 a.button:any-link,
 button {
   box-sizing: border-box;
@@ -2171,7 +2490,7 @@ button {
   max-width: 100%;
   margin: 12px 0;
   border: {decoration.borders.default — e.g. '2px solid transparent'};
-  border-radius: {decoration.borderRadius.full or decoration.borderRadius.large or '2.4em'};
+  border-radius: {decoration.borderRadius for buttons — e.g. '2.4em'};
   padding: 0.5em 1.2em;
   font-family: var(--body-font-family);
   font-style: normal;
@@ -2179,8 +2498,8 @@ button {
   line-height: 1.25;
   text-align: center;
   text-decoration: none;
-  background-color: {color-palette.buttons.primaryBg — or 'var(--link-color)' if buttons not detected};
-  color: {color-palette.buttons.primaryText — or 'var(--background-color)'};
+  background-color: {color-palette.buttons.primaryBg};
+  color: {color-palette.buttons.primaryText};
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2192,7 +2511,7 @@ a.button:hover,
 a.button:focus,
 button:hover,
 button:focus {
-  background-color: {color-palette.buttons.primaryHoverBg — or 'var(--link-hover-color)'};
+  background-color: {color-palette.buttons.primaryHoverBg};
   cursor: pointer;
 }
 
@@ -2208,6 +2527,42 @@ button.secondary {
   border: 2px solid currentcolor;
   color: var(--text-color);
 }
+
+/* === IF color-palette.buttons IS null (no real buttons detected) === */
+/* a.button:any-link stays link-like — no border, background, or border-radius */
+a.button:any-link {
+  color: var(--link-color);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+a.button:hover,
+a.button:focus {
+  color: var(--link-hover-color);
+  text-decoration: {interactions.hoverStates.link.after.textDecoration — usually 'underline'};
+}
+
+/* native button elements get minimal styling */
+button {
+  font: inherit;
+  border: none;
+  background-color: transparent;
+  color: var(--link-color);
+  cursor: pointer;
+}
+
+button:hover,
+button:focus {
+  color: var(--link-hover-color);
+}
+
+button:disabled,
+button:disabled:hover {
+  color: var(--light-color);
+  cursor: unset;
+}
+
+/* === END conditional === */
 
 main img {
   max-width: 100%;
@@ -2228,24 +2583,50 @@ main img {
 }
 
 /* sections — source: spacing.json, layout.json */
+/*
+ * CONDITIONAL: Use ONE of the two blocks below depending on the value of
+ * layout.sectionLayout ("full-bleed" vs "constrained") and layout.contentMaxWidthType.
+ *
+ * Read layout.json and spacing.json to determine which block to use.
+ */
+
+/* === IF layout.sectionLayout is "full-bleed" (sections span viewport, inner div constrains) === */
+/* This is common on CMS sites where outer section wrappers are full-width and an inner
+   container handles the max-width constraint. */
 main > .section {
-  margin: {spacing.tokens.sectionPaddingVertical or '40px'} 0;
+  margin: {spacing.tokens.sectionPaddingVertical or '0px'} 0;
 }
 
 main > .section > div {
-  max-width: {layout.contentMaxWidth or '1200px'};
+  max-width: {layout.contentMaxWidth — use the raw value from layout.json, e.g. '85%' or '1200px'};
   margin: auto;
-  padding: 0 {spacing.tokens.containerPaddingHorizontal or '24px'};
+  padding: 0 {spacing.tokens.containerPaddingHorizontal — from Phase 7 inner container, e.g. '15px'};
 }
 
 main > .section:first-of-type {
   margin-top: 0;
 }
 
+/*
+ * Desktop padding override: Only include this @media block if layout.desktopContainerPadding
+ * is NOT null (i.e., there is CSS evidence for a different padding at desktop).
+ * If layout.desktopContainerPadding is null, DELETE this entire @media block.
+ * Do NOT fabricate a 32px desktop override — use only values backed by source CSS evidence.
+ */
 @media (width >= {breakpoints.edsMapping.siteDesktopBreakpoint or '900px'}) {
   main > .section > div {
-    padding: 0 {desktop container padding if different, else '32px'};
+    padding: 0 {layout.desktopContainerPadding.left — ONLY if not null};
   }
+}
+
+/*
+ * Narrow section variant: Only include if layout.nestedContainers is true.
+ * This replicates the double-nested container pattern from the source site.
+ * Sections with Section Metadata style "narrow" get a tighter inner width.
+ * If layout.nestedContainers is false, DELETE this entire block.
+ */
+main > .section.narrow > div {
+  max-width: {layout.nestedEffectiveMaxWidth — e.g. '72.25%' — computed in Phase 7.3.3};
 }
 
 /* section metadata */
@@ -2255,6 +2636,50 @@ main .section.highlight {
   margin: 0;
   padding: {spacing.tokens.sectionPaddingVertical or '40px'} 0;
 }
+
+/* === IF layout.sectionLayout is "constrained" (sections themselves have max-width/padding) === */
+/* Use this block when the source site constrains content at the section level, not an inner div. */
+main > .section {
+  max-width: {layout.contentMaxWidth or '1200px'};
+  margin: {spacing.tokens.sectionPaddingVertical or '40px'} auto;
+  padding: 0 {spacing.tokens.containerPaddingHorizontal or '24px'};
+}
+
+main > .section > div {
+  max-width: unset;
+  margin: 0;
+  padding: 0;
+}
+
+main > .section:first-of-type {
+  margin-top: 0;
+}
+
+/* Desktop padding override — same rule as full-bleed: only if desktopContainerPadding is not null */
+@media (width >= {breakpoints.edsMapping.siteDesktopBreakpoint or '900px'}) {
+  main > .section {
+    padding: 0 {layout.desktopContainerPadding.left — ONLY if not null};
+  }
+}
+
+/*
+ * Narrow section variant (constrained mode): Only include if layout.nestedContainers is true.
+ * In constrained mode, the section itself constrains — so narrow overrides the section max-width.
+ * If layout.nestedContainers is false, DELETE this entire block.
+ */
+main > .section.narrow {
+  max-width: {layout.nestedEffectiveMaxWidth — e.g. '72.25%' or '1015px'};
+}
+
+/* section metadata */
+main .section.light,
+main .section.highlight {
+  background-color: var(--light-color);
+  margin: 0 auto;
+  padding: {spacing.tokens.sectionPaddingVertical or '40px'} {spacing.tokens.containerPaddingHorizontal or '24px'};
+}
+
+/* === END conditional === */
 
 /* focus styles — source: interactions.json */
 /* Only include if the source site has custom focus styles. Delete if using browser defaults. */
@@ -2350,7 +2775,12 @@ Then add the font service tags. Examples:
 - [ ] Heading/paragraph margins are from the source site
 - [ ] Link hover `text-decoration` matches the source site behavior
 - [ ] Button styles reflect the source site (border-radius, colors, hover state)
-- [ ] Section max-width matches the source site's content container width
+- [ ] Section max-width matches the source site's content container width (percentage or pixel, as extracted in layout.json)
+- [ ] If `layout.contentMaxWidthType` is `"percentage"` → the CSS uses the percentage value (e.g., `85%`), not a pixel approximation
+- [ ] Section margin reflects `spacing.tokens.sectionPaddingVertical` — if `0px`, sections are tightly stacked (not `40px` by default)
+- [ ] Container padding matches the innermost constraining container (Phase 7), not a generic fallback
+- [ ] Desktop padding `@media` block is ABSENT if `layout.desktopContainerPadding` is null (no fabricated `32px`)
+- [ ] Correct section layout conditional used (`full-bleed` vs `constrained`) based on `layout.sectionLayout`
 - [ ] Responsive `@media` block uses the source site's breakpoint (or is deleted if not responsive)
 - [ ] Fallback `@font-face` entries use the correct system font for the font category
 - [ ] `styles/fonts.css` created with @font-face or @import (or documented as CDN-loaded in head.html)
@@ -2558,6 +2988,9 @@ Take a screenshot of the preview and compare side-by-side with the source site s
 - [ ] Heading sizes are proportionally correct
 - [ ] Link color matches
 - [ ] Overall spacing feels similar
+- [ ] Content width is constrained similarly (not noticeably wider or narrower)
+- [ ] Section vertical spacing matches (tight vs spaced)
+- [ ] Content horizontal padding matches (content doesn't touch viewport edges differently)
 
 ### 12.3 Write completion signal
 
@@ -2613,9 +3046,9 @@ Output a brief summary to the user of:
 | `migration-work/raw-css-corpus.txt` | All CSS from source site |
 | `migration-work/color-palette.json` | Categorized color palette |
 | `migration-work/typography.json` | Font families, sizes, weights |
-| `migration-work/spacing.json` | Spacing scale |
+| `migration-work/spacing.json` | Spacing scale, section spacing variance detail |
 | `migration-work/breakpoints.json` | Media query breakpoints |
-| `migration-work/layout.json` | Container widths, nav height |
+| `migration-work/layout.json` | Container widths (px or %), section layout pattern, nested containers, nav height |
 | `migration-work/decoration.json` | Borders, shadows, radius |
 | `migration-work/interactions.json` | Hover states, transitions |
 
