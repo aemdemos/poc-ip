@@ -40,7 +40,7 @@ Orchestrates navigation instrumentation. Every structural decision MUST be valid
 
 **Base path:** `blocks/header/navigation-validation/` — create if it doesn't exist.
 
-Full artifact table, file existence checklist, and rules: **`references/validation-artifacts.md`**
+Full artifact table, file existence checklist, and rules: **`.claude/skills/excat-navigation-orchestrator/references/validation-artifacts.md`**
 
 **Key rules:** Write each file immediately after producing that phase's JSON. Do not proceed to the next phase until written. Paths are relative to workspace root. If a phase is skipped, still write schema-shaped JSON with zero/empty values.
 
@@ -108,7 +108,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
 2. **You must produce** the following JSON from the screenshot (row detection only — do not map content yet):
    - `rowCount` (integer): number of distinct horizontal rows in the header.
    - `confidence` (0–1), `uncertainty` (boolean), `notes` (array of strings).
-3. **Gate:** Output MUST conform to `references/desktop-navigation-agent-schema.json` (rowDetection shape). If you cannot determine row count from the screenshot, set `uncertainty: true` and STOP; ask for clarification. If `confidence < 0.8`, do not proceed without user confirmation.
+3. **Gate:** Output MUST conform to `.claude/skills/excat-navigation-orchestrator/references/desktop-navigation-agent-schema.json` (rowDetection shape). If you cannot determine row count from the screenshot, set `uncertainty: true` and STOP; ask for clarification. If `confidence < 0.8`, do not proceed without user confirmation.
 4. If `rowCount > 3`: Switch to **Modular Navigation Mode** (each row as a separate module; validate per module later via page-critique).
 5. **Write** the Phase 1 JSON to `blocks/header/navigation-validation/phase-1-row-detection.json`. Create `blocks/header/navigation-validation/` if needed. At run start, write `blocks/header/navigation-validation/session.json` with `sourceUrl`, `migratedPath`, `startedAt` (ISO timestamp). Do not proceed to Phase 2 until this file exists.
 
@@ -127,7 +127,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
    - **Locale / language selector detection (REQUIRED):** For each row, check for any locale, language, or region selector. Record `hasLocaleSelector` (boolean: true/false). Look for: globe icons (🌐), country flag icons (🇺🇸 🇩🇪), language name text ("English", "EN/DE"), region dropdowns, country grid overlays, or language toggle switches. Click the element to observe what opens (dropdown list, full overlay grid, tooltip bubble, etc.). If `hasLocaleSelector: true`, record `localeSelectorDetails`: `selectorType` (language-dropdown | country-grid | region-dropdown | language-toggle | flag-dropdown | globe-icon-dropdown | inline-links), `triggerElement`, `triggerBehavior` (click | hover | both), `hasFlags` (boolean: true if country flags are shown — these MUST be downloaded to `content/images/` and referenced in `nav.md`), `flagCount`, `dropdownLayout` (vertical-list | multi-column-grid | full-width-overlay | tooltip-bubble | inline-toggle), `entryCount`, `currentLocaleIndicator`, `position`, `closeBehavior`. The hook **BLOCKS** if `hasLocaleSelector` field is missing (Gate 11c).
    - **Hover and click check (required):** Test **hover** and **click** separately for every nav item. Do **not** assume that items that redirect (links) have no hover effect — many headers open a dropdown on hover even when the item is a link. Hover over each item to verify; then test click. Record both in the schema.
    - Top-level: `rows` (array), `confidence`, `uncertainty`, `notes`.
-2. **Gate:** Output MUST conform to `references/desktop-navigation-agent-schema.json` (rowMapping shape). Every row must have `hasImages`, `hasHoverBehavior`, and `hasClickBehavior` set from evidence. Only derive from the screenshot and interaction tests; do not assume alignment or grouping. If ambiguous, set `uncertainty: true` and list issues in `notes`; STOP if uncertainty > 20%.
+2. **Gate:** Output MUST conform to `.claude/skills/excat-navigation-orchestrator/references/desktop-navigation-agent-schema.json` (rowMapping shape). Every row must have `hasImages`, `hasHoverBehavior`, and `hasClickBehavior` set from evidence. Only derive from the screenshot and interaction tests; do not assume alignment or grouping. If ambiguous, set `uncertainty: true` and list issues in `notes`; STOP if uncertainty > 20%.
 3. **Write** the Phase 2 JSON to `blocks/header/navigation-validation/phase-2-row-mapping.json`. Do not proceed to Phase 3 until this file exists.
 
 ### Phase 3: Megamenu Analysis (Checkpoints 3 and 4)
@@ -137,7 +137,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
 3. **Search form inside megamenu:** Check if the megamenu panel contains a search bar or search input (some megamenus include in-panel search for filtering items). Record `hasSearchForm` in the megamenu JSON. If true, note `searchFormDetails` with position and scope.
 4. **Locale selector inside megamenu:** Check if the megamenu panel contains a locale/language/region picker (some megamenus embed a full country grid with flags or a region tab selector). Record `hasLocaleSelector`. If true, note `localeSelectorDetails` with selectorType, hasFlags, entryCount. If flags are present, download them.
 5. **Overlay behavior (CRITICAL — must match source exactly):** When the megamenu opens, check: Does the source site show a background overlay/backdrop behind the panel? Record `overlayBehavior`: `{ "hasOverlay": true/false, "overlayType": "semi-transparent-black|blur|none", "overlayOpacity": "0.5", "overlayDismisses": true/false }`. The migrated site MUST replicate this exactly — if the source has NO overlay, the migrated must NOT add one. If the source has a semi-transparent backdrop, the migrated must match its opacity and color. Mismatched overlays are a common failure.
-6. **Gate:** Output MUST conform to `references/megamenu-schema.json`. If megamenu exists and has columns, `columns` with per-column `hasImages` is required. If no megamenu exists, emit valid JSON with zero/empty values and `notes` explaining. No implementation until this JSON is produced and validated.
+6. **Gate:** Output MUST conform to `.claude/skills/excat-navigation-orchestrator/references/megamenu-schema.json`. If megamenu exists and has columns, `columns` with per-column `hasImages` is required. If no megamenu exists, emit valid JSON with zero/empty values and `notes` explaining. No implementation until this JSON is produced and validated.
 7. If `columnCount > 4` or `nestedLevels > 2`: Apply Modular Navigation Mode for later validation.
 8. **Write** the Phase 3 JSON to `blocks/header/navigation-validation/phase-3-megamenu.json`. Do not proceed until this file exists.
 9. **Deep megamenu mapping (REQUIRED when megamenu exists):** After writing phase-3, perform a **per-item deep analysis** of every dropdown/megamenu panel:
@@ -146,7 +146,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
    - If the panel has **category tabs** (e.g. TODOS, SUV, HATCHBACK): click each tab, record how it filters content.
    - If the panel has a **featured area** (e.g. large vehicle image on the left that changes on hover): document it, note what triggers updates.
    - If items have **nested interactions** (hover shows specs, click opens sub-panel): drill down until no further interaction is found.
-   - **Write** `blocks/header/navigation-validation/megamenu-mapping.json` conforming to `references/megamenu-mapping-schema.json`. Every individual item must be recorded. `totalItemsAnalyzed` must reflect the actual count of items tested.
+   - **Write** `blocks/header/navigation-validation/megamenu-mapping.json` conforming to `.claude/skills/excat-navigation-orchestrator/references/megamenu-mapping-schema.json`. Every individual item must be recorded. `totalItemsAnalyzed` must reflect the actual count of items tested.
    - **Content destination: nav.md (CRITICAL):** All text content, link labels, category names, sub-menu items, promotional text, and link URLs discovered during deep megamenu mapping MUST be written into `content/nav.md` — NOT into `header.js`. The JS code reads this DOM content and presents it; it never generates it. Plan the nav.md structure to capture the full megamenu hierarchy (nested lists, section headings, link groups) so that header.js can traverse and render the panels faithfully.
    - **Gate:** If megamenu exists and `megamenu-mapping.json` is not written, do not proceed to implementation. The hook will block at Stop if this file is missing.
 
@@ -166,7 +166,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
      4. In nav.md, reference each downloaded image: `![alt text](images/filename.ext)`.
      5. After writing nav.md, **MANDATORY — run the validation script:**
         ```
-        node scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation
+        node .claude/skills/excat-navigation-orchestrator/scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation
         ```
         If exit code is non-zero, DO NOT PROCEED. The script will tell you exactly which images are missing. Go back to sub-step 2, download the missing images, rewrite nav.md, and re-run the script. Repeat until exit code 0.
      6. **Verify logging:** Read the last 10 lines of `blocks/header/navigation-validation/debug.log`. Confirm you see `[SCRIPT:validate-nav-content] [PASS]` or `[SCRIPT:validate-nav-content] [BLOCK]`. If neither entry exists, the script was NOT actually executed — go back and run it.
@@ -180,10 +180,10 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
      5. In `header.css`, style the locale selector to match source exactly: dropdown layout (vertical-list, multi-column-grid, full-width-overlay, tooltip-bubble), flag image sizing, hover states, current-locale highlighting, close animation.
      - If the source has a country grid overlay with 50+ flags (like the STILL example), all 50+ flags must be downloaded and rendered. Do NOT skip flags or show text-only when source shows flags.
 4. **Megamenu behavior validation (required when megamenu exists) — FIRST.** Behavior fixes add missing DOM elements, images, and interactions, which changes both structure and styling. Run this before structural or style validation.
-   - **Create migrated megamenu mapping:** On the migrated page, hover and click every megamenu trigger, every panel item, every sub-item, every category tab, every featured area — exactly as you did for the source. Produce `blocks/header/navigation-validation/migrated-megamenu-mapping.json` conforming to the same `references/megamenu-mapping-schema.json` schema.
+   - **Create migrated megamenu mapping:** On the migrated page, hover and click every megamenu trigger, every panel item, every sub-item, every category tab, every featured area — exactly as you did for the source. Produce `blocks/header/navigation-validation/migrated-megamenu-mapping.json` conforming to the same `.claude/skills/excat-navigation-orchestrator/references/megamenu-mapping-schema.json` schema.
    - **Compare and write behavior register:** Run:
      ```
-     node scripts/compare-megamenu-behavior.js \
+     node .claude/skills/excat-navigation-orchestrator/scripts/compare-megamenu-behavior.js \
        blocks/header/navigation-validation/megamenu-mapping.json \
        blocks/header/navigation-validation/migrated-megamenu-mapping.json \
        --output=blocks/header/navigation-validation/megamenu-behavior-register.json
@@ -198,8 +198,8 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
      4. **Re-test and re-compare:** Hover and click the fixed items on migrated page. Update `migrated-megamenu-mapping.json`. Re-run `compare-megamenu-behavior.js`. Repeat until register shows `allValidated: true`.
    - **Why first:** Behavior fixes typically add missing DOM structure (featured areas, category tabs, image cards, spec sections), which directly affects what the structural schema comparison sees and what the style critique evaluates. Running structure or style first wastes iterations.
 5. **Structural schema validation and schema register (required) — SECOND.** Now that behavior is locked in, validate that content/structure matches source.
-   - **Extract from migrated page:** Inspect the header on the migrated page (screenshot or DOM). Produce `blocks/header/navigation-validation/migrated-structural-summary.json` conforming to `references/structural-summary-schema.json`: `rowCount`, `rows` (array of `{ index, hasImages }` per row), `megamenu` (`columnCount`, `hasImages`, `columns` with `columnIndex` and `hasImages`).
-   - **Compare and write schema register:** Run `node scripts/compare-structural-schema.js blocks/header/navigation-validation/phase-1-row-detection.json blocks/header/navigation-validation/phase-2-row-mapping.json blocks/header/navigation-validation/phase-3-megamenu.json blocks/header/navigation-validation/migrated-structural-summary.json --threshold=95 --output-register=blocks/header/navigation-validation/schema-register.json`. The script compares source to migrated and writes **schema-register.json** with one entry per component (row-0, row-1, …, megamenu, megamenu-column-0, …) and status **validated** or **pending**. Exit 0 only if overall structural similarity ≥ 95%.
+   - **Extract from migrated page:** Inspect the header on the migrated page (screenshot or DOM). Produce `blocks/header/navigation-validation/migrated-structural-summary.json` conforming to `.claude/skills/excat-navigation-orchestrator/references/structural-summary-schema.json`: `rowCount`, `rows` (array of `{ index, hasImages }` per row), `megamenu` (`columnCount`, `hasImages`, `columns` with `columnIndex` and `hasImages`).
+   - **Compare and write schema register:** Run `node .claude/skills/excat-navigation-orchestrator/scripts/compare-structural-schema.js blocks/header/navigation-validation/phase-1-row-detection.json blocks/header/navigation-validation/phase-2-row-mapping.json blocks/header/navigation-validation/phase-3-megamenu.json blocks/header/navigation-validation/migrated-structural-summary.json --threshold=95 --output-register=blocks/header/navigation-validation/schema-register.json`. The script compares source to migrated and writes **schema-register.json** with one entry per component (row-0, row-1, …, megamenu, megamenu-column-0, …) and status **validated** or **pending**. Exit 0 only if overall structural similarity ≥ 95%.
    - **Verify logging:** Read last 10 lines of `debug.log`. Confirm `[SCRIPT:compare-structural-schema]` entry appears. If missing, the script was NOT executed — go back and run it.
    - **Gate:** If **similarity &lt; 95%** or **schema-register.json** has any item with status **pending**, list mismatches. Do NOT proceed to style validation until `allValidated: true`. Record `validationReport.structuralSimilarity` and `validationReport.structuralMismatches`; update `phase-5-aggregate.json`.
    - **STRUCTURAL REMEDIATION (when any component mismatches):** For EACH failing schema-register item, you MUST fix the implementation:
@@ -211,7 +211,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
      6. **Repeat:** Until schema-register shows `allValidated: true`.
    - **Why second:** Structure must be complete and correct before visual styling is evaluated. If rows, columns, or images are missing, the critique agent would compare against an incomplete implementation and scores would be meaningless.
 6. **Build desktop style register (prepare for combined critique later).** Build the register now so it's ready; critique will run as step 12 (combined).
-   - **List EVERY individual item from phase-1/2/3 AND megamenu-mapping.json:** Read phase-1, phase-2, phase-3 JSON files **AND** `megamenu-mapping.json` (the deep behavior analysis). Create `blocks/header/navigation-validation/style-register.json` conforming to `references/style-register-schema.json`. List **every individual item** discovered — not just high-level groups:
+   - **List EVERY individual item from phase-1/2/3 AND megamenu-mapping.json:** Read phase-1, phase-2, phase-3 JSON files **AND** `megamenu-mapping.json` (the deep behavior analysis). Create `blocks/header/navigation-validation/style-register.json` conforming to `.claude/skills/excat-navigation-orchestrator/references/style-register-schema.json`. List **every individual item** discovered — not just high-level groups:
      - From phase-2 `rows[i]`: **row-0**, and within row-0 every distinct element: **row-0-logo** (if hasImages), **row-0-nav-links**, **row-0-cta** (if CTA/button), **row-0-search** (if search), **row-0-icons** (if icons). Repeat for **row-1**, **row-2**, etc. Parse `elements` array in each row.
      - From phase-3 `megamenu` (high-level): **megamenu** (overall), **megamenu-column-0**, **megamenu-column-1**, etc.
      - From `megamenu-mapping.json` (deep sub-items — CRITICAL): For EACH `navTrigger`, create **megamenu-trigger-{index}** (e.g. `megamenu-trigger-0-products`). For EACH `panelItem` inside that trigger, create **megamenu-trigger-{i}-item-{j}** (e.g. `megamenu-trigger-0-item-0-widget-x`). For EACH `subItem`, create **megamenu-trigger-{i}-item-{j}-sub-{k}**. For EACH `categoryTab`, create **megamenu-trigger-{i}-tab-{j}** (e.g. `megamenu-trigger-0-tab-category-a`). For the `featuredArea`, create **megamenu-trigger-{i}-featured**.
@@ -221,7 +221,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
      - Initial `status` for every item: `"pending"`, `lastSimilarity: 0`. Set `allValidated: false`.
    - **Do NOT run critique yet.** The style register is built but critique runs at step 12 (combined with mobile) to avoid running it twice.
 7. **Pre-confirmation gate + Customer Confirmation (desktop structural + behavioral only):** Before asking the customer, verify:
-   - [ ] Run `node scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation` — exit code MUST be 0.
+   - [ ] Run `node .claude/skills/excat-navigation-orchestrator/scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation` — exit code MUST be 0.
    - [ ] `blocks/header/navigation-validation/megamenu-behavior-register.json` exists (when megamenu present), `allValidated: true`.
    - [ ] `blocks/header/navigation-validation/schema-register.json` exists, `allValidated: true`.
    - [ ] `blocks/header/navigation-validation/style-register.json` exists (register built, but critique not yet run — that's OK at this stage).
@@ -241,7 +241,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
    - **Mobile megamenu behavior:** If the desktop megamenu has sub-items, tabs, featured areas — how do they appear on mobile? (e.g., category tabs become accordion headers or slide-in sub-panels, featured image hidden on mobile, grid becomes vertical list). Record for comparison.
    - **Mobile search form detection (REQUIRED):** Check whether the mobile header or mobile menu contains a search bar/input/form. Set `hasSearchForm` (true/false). On mobile, search may be: hidden behind a search icon, inside the hamburger menu drawer, collapsed into an expandable input, or completely absent on mobile. If `hasSearchForm: true`, populate `searchFormDetails` with `formType` (inline-input | expandable-icon | inside-menu | modal-overlay | hidden), `visibleInClosedState`, and `position`. The hook **BLOCKS** if `hasSearchForm` field is missing (Gate 14).
    - **Mobile locale / language selector detection (REQUIRED):** Check whether the mobile header or mobile menu contains a locale/language/region selector. Set `hasLocaleSelector` (true/false). On mobile, the locale selector may appear as: a globe icon in the header bar, a flag icon next to the hamburger, inside the hamburger menu drawer (top or bottom), a language toggle (e.g. "German | English"), or absent on mobile. If `hasLocaleSelector: true`, populate `localeSelectorDetails` with `selectorType` (language-dropdown | country-grid | region-dropdown | language-toggle | flag-dropdown | globe-icon-dropdown | inside-menu | inline-links), `triggerElement`, `visibleInClosedState`, `hasFlags`, `position`, `dropdownLayout`. If `hasFlags: true`, ensure flag images are downloaded. The hook **BLOCKS** if `hasLocaleSelector` field is missing (Gate 14b).
-3. **Gate:** Output MUST conform to `references/mobile-navigation-agent-schema.json`.
+3. **Gate:** Output MUST conform to `.claude/skills/excat-navigation-orchestrator/references/mobile-navigation-agent-schema.json`.
 4. **Write** the Phase 4 JSON to `blocks/header/navigation-validation/phase-4-mobile.json`.
 5. Update `phase-5-aggregate.json` with real `mobileMapping` (replace `"pending"`).
 6. **Implement mobile:** Update `blocks/header/header.css` and `blocks/header/header.js` for breakpoints, hamburger menu (including hamburger → cross animation), and open behavior per Phase 4 output. Key requirements:
@@ -256,7 +256,7 @@ If a script log entry is MISSING, the script was not actually executed. Go back 
 
 After implementing mobile, run the same structural validation as desktop but scoped to mobile. Style critique runs later in the combined pass (step 12).
 
-7. **Mobile structural validation:** Extract mobile header structure at mobile viewport. Produce `blocks/header/navigation-validation/mobile/migrated-mobile-structural-summary.json`. Run `node scripts/compare-structural-schema.js` comparing Phase 4 mobile JSON against the migrated mobile structure. Write `blocks/header/navigation-validation/mobile/mobile-schema-register.json`. All items must be validated.
+7. **Mobile structural validation:** Extract mobile header structure at mobile viewport. Produce `blocks/header/navigation-validation/mobile/migrated-mobile-structural-summary.json`. Run `node .claude/skills/excat-navigation-orchestrator/scripts/compare-structural-schema.js` comparing Phase 4 mobile JSON against the migrated mobile structure. Write `blocks/header/navigation-validation/mobile/mobile-schema-register.json`. All items must be validated.
 8. **Mobile heading coverage validation (ALL headings — CRITICAL):** With the mobile menu open at 375×812, click EVERY top-level nav heading and verify:
    - Does it expand/slide as expected per `phase-4-mobile.json` (accordion expand vs slide-in-panel)?
    - Does the sub-menu contain all items from the desktop megamenu mapping?
@@ -341,7 +341,7 @@ Aggregate into a single JSON object only. No free-text explanation in intermedia
 
 ## Schema Validation
 
-Validate all sub-agent output with `node scripts/validate-output.js <output.json> <schema.json>`. Exit non-zero = do not proceed. Schemas: `references/desktop-navigation-agent-schema.json`, `references/mobile-navigation-agent-schema.json`, `references/megamenu-schema.json`, `references/validation-agent-schema.json`.
+Validate all sub-agent output with `node .claude/skills/excat-navigation-orchestrator/scripts/validate-output.js <output.json> <schema.json>`. Exit non-zero = do not proceed. Schemas: `.claude/skills/excat-navigation-orchestrator/references/desktop-navigation-agent-schema.json`, `.claude/skills/excat-navigation-orchestrator/references/mobile-navigation-agent-schema.json`, `.claude/skills/excat-navigation-orchestrator/references/megamenu-schema.json`, `.claude/skills/excat-navigation-orchestrator/references/validation-agent-schema.json`.
 
 ## Implementation (EDS)
 
@@ -364,30 +364,30 @@ Validate all sub-agent output with `node scripts/validate-output.js <output.json
 **Paraphrased:** "We need the site header migrated with desktop and mobile", "Can you replicate this site’s navigation in EDS?".  
 **Do NOT use for:** Simple link lists without screenshot evidence; pages not yet migrated (use excat-page-migration first); general page layout or footer work.
 
-**Functional:** Run full flow; confirm all phase JSONs + registers under `blocks/header/navigation-validation/`; all components 95%+; mobile only after desktop confirmation. Validate with `scripts/validate-output.js` and `scripts/compare-structural-schema.js --threshold=95 --output-register`.
+**Functional:** Run full flow; confirm all phase JSONs + registers under `blocks/header/navigation-validation/`; all components 95%+; mobile only after desktop confirmation. Validate with `.claude/skills/excat-navigation-orchestrator/scripts/validate-output.js` and `.claude/skills/excat-navigation-orchestrator/scripts/compare-structural-schema.js --threshold=95 --output-register`.
 
 ## Enforcement (Two Layers — Script + Hook)
 
-- **Layer 1 — Script:** `node scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation` — MANDATORY after every nav.md write (exit 0 = pass).
-- **Layer 2 — Hook:** `hooks/nav-validation-gate.js` — 17 PostToolUse gates (1–15 incl. 11b/11c/14b) + 12 Stop checks (1–12 incl. 7b/8b–8f) covering desktop + mobile. Logs tagged `[DESKTOP]`/`[MOBILE]`/`[CRITIQUE]`/`[VIEWPORT]`/`[SEARCH]`/`[LOCALE]` to `blocks/header/navigation-validation/debug.log` with WORKFLOW PROGRESS DASHBOARD.
-- Full gate details in hook file comments and `references/reference-index.md`.
+- **Layer 1 — Script:** `node .claude/skills/excat-navigation-orchestrator/scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation` — MANDATORY after every nav.md write (exit 0 = pass).
+- **Layer 2 — Hook:** `.claude/skills/hooks/nav-validation-gate.js` — 17 PostToolUse gates (1–15 incl. 11b/11c/14b) + 12 Stop checks (1–12 incl. 7b/8b–8f) covering desktop + mobile. Logs tagged `[DESKTOP]`/`[MOBILE]`/`[CRITIQUE]`/`[VIEWPORT]`/`[SEARCH]`/`[LOCALE]` to `blocks/header/navigation-validation/debug.log` with WORKFLOW PROGRESS DASHBOARD.
+- Full gate details in hook file comments and `.claude/skills/excat-navigation-orchestrator/references/reference-index.md`.
 
 ## References
 
-Full reference index: **`references/reference-index.md`** — schemas, scripts, registers, critique, enforcement.
+Full reference index: **`.claude/skills/excat-navigation-orchestrator/references/reference-index.md`** — schemas, scripts, registers, critique, enforcement.
 
-**Key schemas:** `references/desktop-navigation-agent-schema.json`, `references/mobile-navigation-agent-schema.json`, `references/megamenu-schema.json`, `references/validation-agent-schema.json`.
-**Key scripts:** `scripts/validate-output.js`, `scripts/compare-structural-schema.js`, `scripts/compare-megamenu-behavior.js`, `scripts/validate-nav-content.js`.
+**Key schemas:** `.claude/skills/excat-navigation-orchestrator/references/desktop-navigation-agent-schema.json`, `.claude/skills/excat-navigation-orchestrator/references/mobile-navigation-agent-schema.json`, `.claude/skills/excat-navigation-orchestrator/references/megamenu-schema.json`, `.claude/skills/excat-navigation-orchestrator/references/validation-agent-schema.json`.
+**Key scripts:** `.claude/skills/excat-navigation-orchestrator/scripts/validate-output.js`, `.claude/skills/excat-navigation-orchestrator/scripts/compare-structural-schema.js`, `.claude/skills/excat-navigation-orchestrator/scripts/compare-megamenu-behavior.js`, `.claude/skills/excat-navigation-orchestrator/scripts/validate-nav-content.js`.
 
 ## Troubleshooting
 
-See **`references/troubleshooting.md`** for common issues (sub-agent rejection, gate blocks, register failures, missing images, wrong mobile patterns, overlay mismatches).
+See **`.claude/skills/excat-navigation-orchestrator/references/troubleshooting.md`** for common issues (sub-agent rejection, gate blocks, register failures, missing images, wrong mobile patterns, overlay mismatches).
 
 ## Do NOT
 
 - Suggest UX improvements, redesign layout, simplify megamenu, or normalize spacing without validation.
 - Auto-correct structure without validation confirmation.
-- Write nav.md to root `/nav.md` — must be `content/nav.md`; must include all images for `hasImages: true` elements; must run `node scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation` afterward (MANDATORY; fix and re-run if exit non-zero).
+- Write nav.md to root `/nav.md` — must be `content/nav.md`; must include all images for `hasImages: true` elements; must run `node .claude/skills/excat-navigation-orchestrator/scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation` afterward (MANDATORY; fix and re-run if exit non-zero).
 - Create nav.md or header implementation **before** the desktop aggregate is written (after Phase 3).
 - Proceed to Phase 4 (mobile) **before** customer confirms desktop; request confirmation **before** passing the pre-confirmation gate (step 7).
 - Skip any phase (1–3) or skip writing phase JSON to `blocks/header/navigation-validation/`.

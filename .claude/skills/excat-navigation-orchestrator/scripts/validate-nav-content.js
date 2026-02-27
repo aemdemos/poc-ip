@@ -8,10 +8,10 @@
  * and MUST NOT proceed if it exits non-zero.
  *
  * Usage:
- *   node scripts/validate-nav-content.js <nav-file> <validation-dir>
+ *   node .claude/skills/excat-navigation-orchestrator/scripts/validate-nav-content.js <nav-file> <validation-dir>
  *
  * Example:
- *   node scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation
+ *   node .claude/skills/excat-navigation-orchestrator/scripts/validate-nav-content.js content/nav.md blocks/header/navigation-validation
  *
  * Exit codes:
  *   0 = all checks passed

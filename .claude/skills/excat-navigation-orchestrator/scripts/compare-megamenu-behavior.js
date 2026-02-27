@@ -7,10 +7,10 @@
  * Produces megamenu-behavior-register.json with per-sub-item hover/click/styling match.
  *
  * Usage:
- *   node scripts/compare-megamenu-behavior.js <source-mapping> <migrated-mapping> [--output=<register-path>]
+ *   node .claude/skills/excat-navigation-orchestrator/scripts/compare-megamenu-behavior.js <source-mapping> <migrated-mapping> [--output=<register-path>]
  *
  * Example:
- *   node scripts/compare-megamenu-behavior.js \
+ *   node .claude/skills/excat-navigation-orchestrator/scripts/compare-megamenu-behavior.js \
  *     blocks/header/navigation-validation/megamenu-mapping.json \
  *     blocks/header/navigation-validation/migrated-megamenu-mapping.json \
  *     --output=blocks/header/navigation-validation/megamenu-behavior-register.json

@@ -2,7 +2,7 @@
 
 | Issue | Cause | Action |
 |-------|--------|--------|
-| Sub-agent output rejected | JSON does not validate against schema | Re-run sub-agent; ensure all required fields and types match `references/*-schema.json`. Run `scripts/validate-output.js` to verify. |
+| Sub-agent output rejected | JSON does not validate against schema | Re-run sub-agent; ensure all required fields and types match `.claude/skills/excat-navigation-orchestrator/references/*-schema.json`. Run `.claude/skills/excat-navigation-orchestrator/scripts/validate-output.js` to verify. |
 | Gate blocks progress | Missing screenshot or uncertainty | Do not proceed. Request screenshot or clarification; do not infer. |
 | Validation-agent recommends re-analysis | Mismatch in row/spacing/font/interaction/megamenu | Trigger re-analysis loop to relevant phase; do not silently adjust. |
 | Script validate-output.js fails | Output file missing or invalid JSON | Ensure sub-agent returns only the prescribed JSON shape; no prose inside the payload. |
@@ -11,7 +11,7 @@
 | Schema register has pending items | Source vs migrated schema mismatch for some component | Fix implementation or re-extract migrated structure; re-run `compare-structural-schema.js --output-register=.../schema-register.json`. Do not proceed until schema-register allValidated. |
 | Desktop renders as raw bullet lists | CSS not applied or wrong selectors | Implement full desktop styling: horizontal layout, list-style none, dropdown panels, CTA button style in blocks/header/header.css. Compare to source screenshot. |
 | Megamenu has no images | hasImages: true but images not implemented | From source, identify megamenu image URLs; download or reference them; include in megamenu content/block so dropdown shows images, not text-only. |
-| Structural similarity &lt; 95% | Migrated header structure differs from source | Re-extract from migrated page into `migrated-structural-summary.json`. Fix implementation to match source. Re-run `scripts/compare-structural-schema.js --threshold=95 --output-register=.../schema-register.json`. |
+| Structural similarity &lt; 95% | Migrated header structure differs from source | Re-extract from migrated page into `migrated-structural-summary.json`. Fix implementation to match source. Re-run `.claude/skills/excat-navigation-orchestrator/scripts/compare-structural-schema.js --threshold=95 --output-register=.../schema-register.json`. |
 | Nav item assumed to have no hover | Link/redirect not tested for hover | Do not assume. Test hover and click separately for every nav item; set hasHoverBehavior and hasClickBehavior in phase-2/phase-3 from evidence. |
 | nav.md written to root `/` | Wrong location | nav.md must be at `content/nav.md`, not workspace root. Move it. |
 | Images missing from nav.md | hasImages elements not downloaded | Before writing nav.md, iterate every `hasImages: true` element from phase-2/3; download each image; include in nav.md. If images are missing, go back and download. |
