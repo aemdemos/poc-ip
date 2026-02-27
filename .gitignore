@@ -9,3 +9,5 @@ helix-importer-ui
 .idea
 localhost.pem
 localhost-key.pem
+/*.png
+blocks/header/navigation-validation/
