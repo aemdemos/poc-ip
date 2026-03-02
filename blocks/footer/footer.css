@@ -1,11 +1,11 @@
+/* footer base */
 footer {
-  background-color: var(--light-color);
-  font-size: var(--body-font-size-xs);
+  background-color: #4a4a49;
+  color: #fff;
+  font-size: 14px;
 }
 
 footer .footer > div {
-  margin: auto;
-  max-width: 1200px;
   padding: 40px 24px 24px;
 }
 
@@ -13,8 +13,96 @@ footer .footer p {
   margin: 0;
 }
 
+/* section spacing */
+footer .footer .section {
+  padding: 0 0 32px;
+}
+
+/* category headers */
+footer .footer strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* link lists */
+footer .footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+footer .footer ul li {
+  padding: 8px 0;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+footer .footer a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+footer .footer a:hover {
+  text-decoration: underline;
+}
+
+/* bottom section (その他 + copyright) */
+footer .footer .section:last-child {
+  border-top: 1px solid rgb(255 255 255 / 20%);
+  padding-top: 32px;
+}
+
+footer .footer .section:last-child strong {
+  font-size: 14px;
+  color: #eee;
+}
+
+footer .footer .section:last-child > .default-content-wrapper > p:nth-child(2) {
+  text-align: center;
+}
+
+footer .footer .section:last-child > .default-content-wrapper > p:last-child {
+  margin-top: 24px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 70%);
+  text-align: center;
+}
+
+/* desktop: 3-column grid for link sections */
 @media (width >= 900px) {
   footer .footer > div {
-    padding: 40px 32px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 0 11px;
+    padding: 16px 14% 24px 4%;
+  }
+
+  /* bottom section spans full width */
+  footer .footer .section:last-child {
+    grid-column: 1 / -1;
+  }
+
+  footer .footer .section:last-child > .default-content-wrapper > p:nth-child(2) {
+    text-align: left;
+  }
+
+  /* hide mobile line breaks so links flow inline on desktop */
+  footer .footer .section:last-child > .default-content-wrapper > p:nth-child(2) br {
+    display: none;
+  }
+
+  /* inject ' / ' separator on desktop where <br> was hidden */
+  /* stylelint-disable-next-line no-descending-specificity */
+  footer .footer .section:last-child > .default-content-wrapper > p:nth-child(2) br + a::before {
+    content: ' / ';
+  }
+
+  /* 会社概要 list splits into 2 columns */
+  footer .footer .section:nth-child(3) ul {
+    column-count: 2;
+    column-gap: 0;
   }
 }
