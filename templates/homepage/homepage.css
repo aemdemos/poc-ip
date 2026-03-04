@@ -1,17 +1,5 @@
 /* Homepage template — page-specific styles scoped to body.homepage */
 
-/* ================================================================
-   Art direction: paragraphs/cells with two <picture> elements use
-   first = mobile image, second = desktop image.
-   Mobile-first: show mobile, hide desktop.
-   ================================================================ */
-
-/* Default (mobile): hide the desktop picture (second child) */
-body.homepage main .section.narrow p > picture:nth-of-type(2),
-body.homepage main .section.narrow p > a > picture:nth-of-type(2) {
-  display: none;
-}
-
 /* Override global p:has(> picture img) { margin: 0 } — restore 40px
    vertical gap between consecutive image paragraphs (matches original) */
 body.homepage main .section.narrow .default-content-wrapper p:has(> picture),
@@ -32,18 +20,12 @@ body.homepage main .section.narrow:not(.columns-container) .default-content-wrap
 }
 
 /* ================================================================
-   Desktop (>= 768px): swap — hide mobile, show desktop
+   Desktop (>= 768px)
    ================================================================ */
 @media (width >= 768px) {
-  /* Hide the mobile picture only when a desktop picture exists */
-  body.homepage main .section.narrow p > picture:first-of-type:not(:only-of-type),
-  body.homepage main .section.narrow p > a > picture:first-of-type:not(:only-of-type) {
-    display: none;
-  }
-
+  /* Desktop pictures: add text-align center (art direction swap is global) */
   body.homepage main .section.narrow p > picture:nth-of-type(2),
   body.homepage main .section.narrow p > a > picture:nth-of-type(2) {
-    display: block;
     text-align: center;
   }
 

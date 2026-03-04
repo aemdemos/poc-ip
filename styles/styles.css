@@ -142,6 +142,16 @@ p:has(> picture img) {
   margin: 0;
 }
 
+/* ================================================================
+   Art direction: when a <p> contains two <picture> elements the
+   first is the mobile image and the second is the desktop image.
+   Mobile-first: show mobile, hide desktop.
+   ================================================================ */
+main p > picture:nth-of-type(2),
+main p > a > picture:nth-of-type(2) {
+  display: none;
+}
+
 code,
 pre {
   font-size: var(--body-font-size-s);
@@ -308,6 +318,19 @@ main .section.light > .default-content-wrapper .button-container .button {
     --heading-font-size-s: 18px;
     --heading-font-size-xs: 16px;
   }
+
+  /* Art direction: desktop — hide mobile picture, show desktop */
+  main p > picture:first-of-type:not(:only-of-type),
+  main p > a > picture:first-of-type:not(:only-of-type) {
+    display: none;
+  }
+
+  /* stylelint-disable no-descending-specificity */
+  main p > picture:nth-of-type(2),
+  main p > a > picture:nth-of-type(2) {
+    display: block;
+  }
+  /* stylelint-enable no-descending-specificity */
 
   main > .section.narrow {
     margin: 40px 0;
