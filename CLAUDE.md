@@ -23,6 +23,16 @@ The auto-convert hook (`auto-convert-md.js`) automatically generates both `.plai
 
 ---
 
+## Project Conventions (Source: americanhome.co.jp)
+
+**Breakpoints:** The original site (americanhome.co.jp) uses `768px` as its primary mobile→desktop content breakpoint and `1024px` for the header/navigation desktop switch. General content and block CSS should use `@media (width >= 768px)`. The header block uses `@media (width >= 1024px)` to match the original site's navigation breakpoint. Do NOT use `600px` from EDS boilerplate defaults.
+
+**Boilerplate blocks:** Several blocks still contain untouched EDS boilerplate CSS (e.g., `form`, `tabs`, `table`). When styling these blocks, replace any boilerplate `600px` breakpoints with `768px` to match the project convention.
+
+**Image art direction:** The original site uses server-side device detection to serve different images for mobile vs desktop (e.g., `-sp.jpeg` for mobile, `-pc.jpeg` for desktop). The carousel block supports art direction by authoring two images per cell in markdown (mobile first, desktop second). The `carousel.js` `createSlide` function merges them into a single `<picture>` element with a `<source media="(min-width: 768px)">` for desktop and the mobile image as the `<img>` fallback.
+
+---
+
 ## Custom Skills
 
 ### Design System Extraction (MUST run BEFORE page migration)

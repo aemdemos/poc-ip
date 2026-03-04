@@ -862,6 +862,134 @@ Example: line-height `25.6px` with font-size `16px` → `25.6 / 16 = 1.6`.
 
 Use the unitless value in the output (better for scaling). Round to 2 decimal places.
 
+### 4.3b Detect responsive typography (mobile vs desktop heading sizes)
+
+The computed styles from Phase 1.4 were captured at whatever viewport width the browser was at (typically desktop). If the source site uses responsive typography (different heading sizes at different breakpoints), the `:root` block needs **mobile values** as the base, with desktop overrides in a `@media` block.
+
+**Step 1 — Check if the site has responsive typography.**
+
+**Tool:** Grep — search the raw CSS corpus for heading-related rules inside media queries:
+
+```
+pattern: @media[^{]*\{[^}]*h[1-6]
+path: migration-work/raw-css-corpus.txt
+output_mode: content
+-A: 5
+head_limit: 30
+multiline: true
+```
+
+Also search for font-size changes in media queries:
+
+```
+pattern: @media.*\{[\s\S]*?font-size
+path: migration-work/raw-css-corpus.txt
+output_mode: content
+head_limit: 20
+multiline: true
+```
+
+If NO heading-related rules appear inside media queries → the site does NOT use responsive typography. Skip to 4.4. In the CSS template, use the extracted values as-is and DELETE the `@media` block for heading size overrides.
+
+**Step 2 — If responsive typography IS detected, resize to mobile and re-measure.**
+
+**Tool:** `browser_resize`
+```
+width: 375
+height: 812
+```
+
+Wait for the layout to reflow:
+
+**Tool:** `browser_wait_for`
+```
+time: 2
+```
+
+**Tool:** `browser_evaluate`
+
+```js
+() => {
+  const TYPO = ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing'];
+  const get = (sel, props) => {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const cs = getComputedStyle(el);
+    const r = { selector: sel };
+    props.forEach(p => { r[p] = cs.getPropertyValue(p).trim(); });
+    return r;
+  };
+
+  return JSON.stringify({
+    viewportWidth: window.innerWidth,
+    body: get('body', TYPO),
+    h1: get('h1', TYPO),
+    h2: get('h2', TYPO),
+    h3: get('h3', TYPO),
+    h4: get('h4', TYPO),
+    h5: get('h5', TYPO),
+    h6: get('h6', TYPO),
+    p: get('p', TYPO),
+  }, null, 2);
+}
+```
+
+Save the result to `migration-work/typography-mobile.json` using the Write tool.
+
+**Step 3 — Restore desktop viewport.**
+
+**Tool:** `browser_resize`
+```
+width: 1440
+height: 900
+```
+
+**Step 4 — Compare mobile vs desktop values.**
+
+Read both `migration-work/computed-styles.json` (desktop) and `migration-work/typography-mobile.json` (mobile). For each heading level:
+- If the mobile font-size differs from the desktop font-size → the site HAS responsive typography
+- Record which values change and which stay the same
+
+**Step 5 — Update typography.json.**
+
+Add a `responsive` block to `migration-work/typography.json`:
+
+```json
+{
+  "responsive": {
+    "hasResponsiveTypography": true,
+    "mobileViewportWidth": "375px",
+    "mobileSizes": {
+      "body": { "fontSize": "14px" },
+      "h1": { "fontSize": "24px" },
+      "h2": { "fontSize": "20px" },
+      "h3": { "fontSize": "18px" },
+      "h4": { "fontSize": "16px" },
+      "h5": { "fontSize": "15px" },
+      "h6": { "fontSize": "14px" }
+    },
+    "desktopSizes": {
+      "body": { "fontSize": "16px" },
+      "h1": { "fontSize": "32px" },
+      "h2": { "fontSize": "28px" },
+      "h3": { "fontSize": "24px" },
+      "h4": { "fontSize": "20px" },
+      "h5": { "fontSize": "18px" },
+      "h6": { "fontSize": "16px" }
+    }
+  }
+}
+```
+
+If `hasResponsiveTypography` is `true`:
+- The `:root` block in `styles/styles.css` should use the **mobile** heading sizes
+- The `@media (width >= {desktopBreakpoint})` block should override with **desktop** heading sizes
+- Body font-size should also use mobile value in `:root` and desktop value in `@media`, if they differ
+
+If `hasResponsiveTypography` is `false`:
+- Use the extracted values directly in `:root`
+- DELETE the `@media` block for heading size overrides entirely
+
 ### 4.4 @font-face declarations
 
 **Tool:** Grep — search for @font-face blocks:
@@ -1069,6 +1197,8 @@ Save to `migration-work/typography.json`:
 - [ ] Font weights captured for body and headings
 - [ ] @font-face declarations captured OR external font service documented
 - [ ] Font loading mechanism explicitly documented: "self-hosted", "google-fonts", "typekit", "typesquare", "fontplus", or "system-fonts-only"
+- [ ] **Responsive check:** If Step 4.3b detected responsive typography, `typography.responsive` block is present with mobile AND desktop sizes
+- [ ] **Responsive check:** If responsive, `:root` heading sizes will use mobile values (not desktop)
 - [ ] **CJK check:** If `cjk-detection.json` shows a CJK site, the `cjk` block is present in `typography.json`
 - [ ] **CJK check:** System fallback chain uses platform-native CJK fonts (NOT Arial/Times New Roman)
 - [ ] **CJK check:** `fullBodyFontFamily` includes both web font + CJK system fallbacks
@@ -1357,18 +1487,20 @@ EDS uses two main breakpoints in `styles/styles.css`:
 - **900px** — the primary mobile/desktop switch (the `@media (width >= 900px)` block)
 - This is used for `:root` variable overrides and section layout
 
-Decision logic for `edsMapping.siteDesktopBreakpoint`:
+Decision logic for `edsMapping.desktopBreakpoint` (the value to use in all `@media` rules in `styles/styles.css` and block CSS):
 
-1. **If the site's primary desktop breakpoint is 768px** → use `900px` (EDS default). The 132px difference is negligible — EDS's 900px captures the same intent.
-2. **If the site's primary desktop breakpoint is 900px–1024px** → use the site's value. It's close enough to EDS default to replace it directly.
+1. **If the site's primary desktop breakpoint is 768px** → set `desktopBreakpoint` to `900px`. The 132px difference is negligible — EDS's 900px captures the same intent.
+2. **If the site's primary desktop breakpoint is 900px–1024px** → set `desktopBreakpoint` to the site's value. It's close enough to EDS default to replace it directly.
 3. **If the site's primary desktop breakpoint is >1024px** → this is probably a "wide" breakpoint, not desktop. Look for a lower breakpoint (tablet) that serves as the real mobile/desktop split.
-4. **If the site's primary desktop breakpoint is <768px** (e.g., 600px) → the site might target tablets as desktop. Use `900px` (EDS default) and note the discrepancy.
+4. **If the site's primary desktop breakpoint is <768px** (e.g., 600px) → set `desktopBreakpoint` to `900px` and note the discrepancy.
+
+**IMPORTANT:** `desktopBreakpoint` is the **CSS-ready value** — the exact pixel value to use in `@media (width >= Xpx)` throughout the project. It is NOT the raw site value. The raw site value is stored separately in `siteRawDesktopBreakpoint` for reference only. Every `@media` rule in `styles/styles.css` and in block CSS files MUST use `desktopBreakpoint`, never `siteRawDesktopBreakpoint`.
 
 | Breakpoint range | Typical purpose | EDS mapping |
 |-----------------|----------------|-------------|
 | 320–480px | Small → large mobile | No EDS equivalent needed |
 | 481–767px | Large mobile → tablet | No EDS equivalent needed |
-| 768–1024px | Tablet → desktop | → `siteDesktopBreakpoint` (use in `@media` block) |
+| 768–1024px | Tablet → desktop | → `desktopBreakpoint` (the CSS-ready value used in all `@media` rules) |
 | 1025–1279px | Desktop → wide | → secondary breakpoint (optional) |
 | 1280px+ | Wide → ultra-wide | → for content max-width only |
 
@@ -1388,10 +1520,9 @@ Save to `migration-work/breakpoints.json`:
     { "value": "1280px", "purpose": "wide-desktop", "matchCount": 8 }
   ],
   "edsMapping": {
-    "mobileBreakpoint": "600px",
-    "desktopBreakpoint": "900px",
-    "siteDesktopBreakpoint": "1024px",
-    "note": "Site uses 1024px for desktop; EDS default is 900px. Consider adjusting EDS breakpoint or mapping content for both."
+    "siteRawDesktopBreakpoint": "1024px",
+    "desktopBreakpoint": "1024px",
+    "note": "Site uses 1024px for desktop. This is in the 900-1024px range, so we use the site's value directly as the CSS-ready breakpoint."
   },
   "rawMediaQueries": ["(min-width: 480px)", "(min-width: 768px)", "(min-width: 1024px)", "(min-width: 1280px)"]
 }
@@ -1405,7 +1536,8 @@ Save to `migration-work/breakpoints.json`:
 - [ ] Mobile breakpoint identified (if exists)
 - [ ] Mobile-first vs desktop-first approach noted
 - [ ] At least 1 breakpoint found (if 0 found, the site may not be responsive — document this)
-- [ ] Comparison with EDS default breakpoints (600px, 900px) documented
+- [ ] `desktopBreakpoint` is the CSS-ready value (not the raw site value) and is stored in `edsMapping.desktopBreakpoint`
+- [ ] `siteRawDesktopBreakpoint` stores the original site value for reference
 
 ---
 
@@ -2205,18 +2337,26 @@ Below is the **complete template**. Every `{PLACEHOLDER}` must be replaced with 
   --body-font-size-s: {typography.body.fontSize minus ~2-3px, or from smaller text detected};
   --body-font-size-xs: {typography.body.fontSize minus ~4-5px, or from fine print detected};
 
-  /* heading sizes (mobile-first: these are mobile values) — source: typography.json */
-  /* If the source site is NOT responsive, use the desktop values here and skip the media query block */
-  --heading-font-size-xxl: {typography.headings.sizes.h1.fontSize};
-  --heading-font-size-xl: {typography.headings.sizes.h2.fontSize};
-  --heading-font-size-l: {typography.headings.sizes.h3.fontSize};
-  --heading-font-size-m: {typography.headings.sizes.h4.fontSize};
-  --heading-font-size-s: {typography.headings.sizes.h5.fontSize};
-  --heading-font-size-xs: {typography.headings.sizes.h6.fontSize};
+  /* heading sizes (mobile-first) — source: typography.json */
+  /*
+   * If typography.responsive.hasResponsiveTypography is TRUE:
+   *   Use typography.responsive.mobileSizes here (mobile values as base)
+   *   Desktop overrides go in the @media block below
+   *
+   * If typography.responsive.hasResponsiveTypography is FALSE:
+   *   Use typography.headings.sizes directly (single set of values)
+   *   DELETE the @media block for heading size overrides
+   */
+  --heading-font-size-xxl: {IF responsive: typography.responsive.mobileSizes.h1.fontSize — ELSE: typography.headings.sizes.h1.fontSize};
+  --heading-font-size-xl: {IF responsive: typography.responsive.mobileSizes.h2.fontSize — ELSE: typography.headings.sizes.h2.fontSize};
+  --heading-font-size-l: {IF responsive: typography.responsive.mobileSizes.h3.fontSize — ELSE: typography.headings.sizes.h3.fontSize};
+  --heading-font-size-m: {IF responsive: typography.responsive.mobileSizes.h4.fontSize — ELSE: typography.headings.sizes.h4.fontSize};
+  --heading-font-size-s: {IF responsive: typography.responsive.mobileSizes.h5.fontSize — ELSE: typography.headings.sizes.h5.fontSize};
+  --heading-font-size-xs: {IF responsive: typography.responsive.mobileSizes.h6.fontSize — ELSE: typography.headings.sizes.h6.fontSize};
 
   /* nav heights — source: layout.json */
-  --nav-height: {layout.navHeight or layout.headerHeight};
-  --breadcrumbs-height: 34px;
+  --nav-height: {layout.navHeight or layout.headerHeight — MUST be extracted from Phase 7.2};
+  --breadcrumbs-height: 34px; /* EDS internal default — breadcrumbs are generated by EDS, not extracted from source. Record as "eds-default" provenance, not "extracted". Adjust later if breadcrumbs render at a different height. */
   --header-height: var(--nav-height);
 
   /* site-specific tokens — source: extracted-variables.json, color-palette.json, decoration.json, interactions.json */
@@ -2270,25 +2410,30 @@ Below is the **complete template**. Every `{PLACEHOLDER}` must be replaced with 
   src: local('{system fallback}');
 }
 
-/* Responsive adjustments — source: breakpoints.json */
-/* Use the site's primary desktop breakpoint. If the site uses mobile-first (min-width),
-   these are the desktop overrides. If desktop-first, invert the logic. */
-@media (width >= {breakpoints.edsMapping.siteDesktopBreakpoint or '900px'}) {
+/* Responsive adjustments — source: breakpoints.json, typography.json → responsive */
+/*
+ * CONDITIONAL: Only include this @media block if typography.responsive.hasResponsiveTypography is true.
+ * If the site does NOT have responsive typography (same sizes at all breakpoints), DELETE this entire @media block.
+ *
+ * When included:
+ * - The :root block above uses MOBILE values (from typography.responsive.mobileSizes)
+ * - This @media block overrides with DESKTOP values (from typography.responsive.desktopSizes)
+ * - The breakpoint value comes from breakpoints.edsMapping.desktopBreakpoint (never hardcoded)
+ */
+@media (width >= {breakpoints.edsMapping.desktopBreakpoint}) {
   :root {
-    /* body sizes — desktop values */
-    /* If the site has different font sizes at desktop vs mobile, put desktop values here.
-       If the site does NOT have responsive typography, DELETE this entire @media block. */
-    --body-font-size-m: {desktop body font-size if different from mobile};
+    /* body sizes — desktop values from typography.responsive.desktopSizes */
+    --body-font-size-m: {typography.responsive.desktopSizes.body.fontSize — only if different from mobile};
     --body-font-size-s: {desktop smaller text size};
     --body-font-size-xs: {desktop fine print size};
 
-    /* heading sizes — desktop values */
-    --heading-font-size-xxl: {desktop h1 font-size if different from mobile};
-    --heading-font-size-xl: {desktop h2 font-size};
-    --heading-font-size-l: {desktop h3 font-size};
-    --heading-font-size-m: {desktop h4 font-size};
-    --heading-font-size-s: {desktop h5 font-size};
-    --heading-font-size-xs: {desktop h6 font-size};
+    /* heading sizes — desktop values from typography.responsive.desktopSizes */
+    --heading-font-size-xxl: {typography.responsive.desktopSizes.h1.fontSize};
+    --heading-font-size-xl: {typography.responsive.desktopSizes.h2.fontSize};
+    --heading-font-size-l: {typography.responsive.desktopSizes.h3.fontSize};
+    --heading-font-size-m: {typography.responsive.desktopSizes.h4.fontSize};
+    --heading-font-size-s: {typography.responsive.desktopSizes.h5.fontSize};
+    --heading-font-size-xs: {typography.responsive.desktopSizes.h6.fontSize};
   }
 }
 
@@ -2321,7 +2466,7 @@ footer .footer[data-block-status="loaded"] {
   visibility: visible;
 }
 
-@media (width >= {breakpoints.edsMapping.siteDesktopBreakpoint or '900px'}) {
+@media (width >= {breakpoints.edsMapping.desktopBreakpoint}) {
   body[data-breadcrumbs] {
     --header-height: calc(var(--nav-height) + var(--breadcrumbs-height));
   }
@@ -2333,11 +2478,11 @@ h3,
 h4,
 h5,
 h6 {
-  margin-top: {spacing.headings.h2.marginTop or '0.8em'};
-  margin-bottom: {spacing.headings.h2.marginBottom or '0.25em'};
+  margin-top: {spacing.headings.h2.marginTop — MUST be extracted; if not found, record as defaulted and use '0.8em'};
+  margin-bottom: {spacing.headings.h2.marginBottom — MUST be extracted; if not found, record as defaulted and use '0.25em'};
   font-family: var(--heading-font-family);
-  font-weight: {typography.headings.sizes.h2.fontWeight or '600'};
-  line-height: {typography.headings.sizes.h2.lineHeight or '1.25'};
+  font-weight: {typography.headings.sizes.h2.fontWeight — MUST be extracted; if not found, record as defaulted and use '600'};
+  line-height: {typography.headings.sizes.h2.lineHeight — MUST be extracted; if not found, record as defaulted and use '1.25'};
   scroll-margin: 40px;
 }
 
@@ -2364,8 +2509,8 @@ ol,
 ul,
 pre,
 blockquote {
-  margin-top: {spacing.paragraph.marginTop or '0.8em'};
-  margin-bottom: {spacing.paragraph.marginBottom or '0.25em'};
+  margin-top: {spacing.paragraph.marginTop — MUST be extracted from computed-styles.text.p; if not found, record as defaulted};
+  margin-bottom: {spacing.paragraph.marginBottom — MUST be extracted from computed-styles.text.p; if not found, record as defaulted};
 }
 
 code,
@@ -2451,7 +2596,7 @@ figcaption {
 }
 
 main > div {
-  margin: {spacing.tokens.sectionPaddingVertical or '40px'} {spacing.tokens.containerPaddingHorizontal or '16px'};
+  margin: {spacing.tokens.sectionPaddingVertical — from extraction} {spacing.tokens.containerPaddingHorizontal — from extraction};
 }
 /* NOTE: The 'main > div' rule above is the EDS fallback for unsectioned content.
    The section rules below (main > .section) take precedence for sectioned pages. */
@@ -2594,13 +2739,13 @@ main img {
 /* This is common on CMS sites where outer section wrappers are full-width and an inner
    container handles the max-width constraint. */
 main > .section {
-  margin: {spacing.tokens.sectionPaddingVertical or '0px'} 0;
+  margin: {spacing.tokens.sectionPaddingVertical — MUST be extracted from Phase 5.1b live section measurement} 0;
 }
 
 main > .section > div {
-  max-width: {layout.contentMaxWidth — use the raw value from layout.json, e.g. '85%' or '1200px'};
+  max-width: {layout.contentMaxWidth — MUST be extracted from Phase 7; use the raw value e.g. '85%' or '1200px'};
   margin: auto;
-  padding: 0 {spacing.tokens.containerPaddingHorizontal — from Phase 7 inner container, e.g. '15px'};
+  padding: 0 {spacing.tokens.containerPaddingHorizontal — MUST be extracted from Phase 7 innermost container};
 }
 
 main > .section:first-of-type {
@@ -2613,7 +2758,7 @@ main > .section:first-of-type {
  * If layout.desktopContainerPadding is null, DELETE this entire @media block.
  * Do NOT fabricate a 32px desktop override — use only values backed by source CSS evidence.
  */
-@media (width >= {breakpoints.edsMapping.siteDesktopBreakpoint or '900px'}) {
+@media (width >= {breakpoints.edsMapping.desktopBreakpoint}) {
   main > .section > div {
     padding: 0 {layout.desktopContainerPadding.left — ONLY if not null};
   }
@@ -2634,15 +2779,15 @@ main .section.light,
 main .section.highlight {
   background-color: var(--light-color);
   margin: 0;
-  padding: {spacing.tokens.sectionPaddingVertical or '40px'} 0;
+  padding: {spacing.tokens.sectionPaddingVertical — from extraction; use same value as section margin above} 0;
 }
 
 /* === IF layout.sectionLayout is "constrained" (sections themselves have max-width/padding) === */
 /* Use this block when the source site constrains content at the section level, not an inner div. */
 main > .section {
-  max-width: {layout.contentMaxWidth or '1200px'};
-  margin: {spacing.tokens.sectionPaddingVertical or '40px'} auto;
-  padding: 0 {spacing.tokens.containerPaddingHorizontal or '24px'};
+  max-width: {layout.contentMaxWidth — MUST be extracted from Phase 7};
+  margin: {spacing.tokens.sectionPaddingVertical — MUST be extracted from Phase 5.1b} auto;
+  padding: 0 {spacing.tokens.containerPaddingHorizontal — MUST be extracted from Phase 7};
 }
 
 main > .section > div {
@@ -2656,7 +2801,7 @@ main > .section:first-of-type {
 }
 
 /* Desktop padding override — same rule as full-bleed: only if desktopContainerPadding is not null */
-@media (width >= {breakpoints.edsMapping.siteDesktopBreakpoint or '900px'}) {
+@media (width >= {breakpoints.edsMapping.desktopBreakpoint}) {
   main > .section {
     padding: 0 {layout.desktopContainerPadding.left — ONLY if not null};
   }
@@ -2676,7 +2821,7 @@ main .section.light,
 main .section.highlight {
   background-color: var(--light-color);
   margin: 0 auto;
-  padding: {spacing.tokens.sectionPaddingVertical or '40px'} {spacing.tokens.containerPaddingHorizontal or '24px'};
+  padding: {spacing.tokens.sectionPaddingVertical — from extraction} {spacing.tokens.containerPaddingHorizontal — from extraction};
 }
 
 /* === END conditional === */
@@ -2692,12 +2837,18 @@ main .section.highlight {
 **How to use this template:**
 
 1. For each `{placeholder}`, look up the value in the named JSON file
-2. If a value was not extracted (null/not found), use the EDS boilerplate default (the value that was already in the file)
+2. **CRITICAL — Provenance tracking:** As you resolve each placeholder, classify it as one of:
+   - **`extracted`** — value came directly from computed styles, raw CSS, or Playwright measurement of the source site
+   - **`derived`** — value was calculated from extracted values (e.g., body-font-size-s = body-font-size minus 2px)
+   - **`defaulted`** — value could not be extracted and falls back to an EDS boilerplate or hardcoded default
+
+   **Build a running list of defaulted values** as you work. Every defaulted value MUST be recorded in `migration-work/design-system-extracted.json` → `summary.defaultedValues` (see Phase 12.3). This is how future sessions know which values are real and which are placeholders.
 3. If a comment says "omit this line if...", delete the entire CSS property line when the condition is met
 4. If the source site has NO responsive typography (same sizes at all breakpoints), delete the `@media` block that adjusts `:root` heading sizes
 5. Delete any site-specific `--brand-*` or `--border-*` or `--transition-*` variables that were not actually found during extraction — do not leave placeholders in the final output
+6. **NEVER silently substitute a boilerplate default for a value that should have been extracted.** If a core value (colors, fonts, breakpoints, body typography) cannot be extracted, this is an extraction failure — investigate why before falling back.
 
-**Common pitfall:** Do not leave any `{placeholder}` strings in the final file. Every value must be a real CSS value. If you cannot determine a value, keep the EDS boilerplate default.
+**Common pitfall:** Do not leave any `{placeholder}` strings in the final file. Every value must be a real CSS value. If you cannot determine a value, first try to extract it from a different page on the source site. Only use a default as a last resort, and ALWAYS record it in the `defaultedValues` list.
 
 ### 11.2 Generate `styles/fonts.css`
 
@@ -2786,6 +2937,10 @@ Then add the font service tags. Examples:
 - [ ] `styles/fonts.css` created with @font-face or @import (or documented as CDN-loaded in head.html)
 - [ ] `head.html` updated with font service tags if applicable
 - [ ] No EDS boilerplate default values remain for properties where an extracted value was available
+- [ ] **Provenance tracking:** Every CSS property that used a fallback/default has been added to the running `defaultedValues` list (for Phase 12.3)
+- [ ] **Provenance tracking:** Verify the `defaultedValues` list is accurate — an empty list means every value was extracted, which should be confirmed, not assumed
+- [ ] **Responsive typography:** If `typography.responsive.hasResponsiveTypography` is true, `:root` uses mobile sizes and `@media` block uses desktop sizes
+- [ ] **Responsive typography:** If false, `@media` block for heading sizes is DELETED (not left with duplicate values)
 - [ ] **Base elements:** Per-heading font-weight overrides included if h1 differs from h2-h6
 - [ ] **Base elements:** Blockquote styled (border-left, padding-left, color) if blockquote was found on the source site
 - [ ] **Base elements:** Inline `code` background/padding/radius set if the source site styles it
@@ -3004,13 +3159,33 @@ Save to `migration-work/design-system-extracted.json`:
   "sourceUrl": "{source URL}",
   "sourceDomain": "{domain, e.g. www.americanhome.co.jp}",
   "timestamp": "{ISO timestamp}",
+  "desktopBreakpoint": "{the CSS-ready breakpoint value from breakpoints.json edsMapping.desktopBreakpoint, e.g. '900px'}",
   "summary": {
     "cssVariablesDefined": 28,
     "fontsIdentified": ["Noto Sans JP"],
     "fontLoadingMethod": "typesquare-cdn",
     "breakpointsMapped": 4,
     "colorsExtracted": 12,
-    "unextracted": []
+    "hasResponsiveTypography": true,
+    "extractedValues": [
+      "--background-color",
+      "--text-color",
+      "--link-color",
+      "--link-hover-color",
+      "--body-font-family",
+      "--heading-font-family",
+      "--body-font-size-m",
+      "--heading-font-size-xxl",
+      "--nav-height"
+    ],
+    "derivedValues": [
+      { "property": "--body-font-size-s", "derivedFrom": "--body-font-size-m minus 2px" },
+      { "property": "--body-font-size-xs", "derivedFrom": "--body-font-size-m minus 4px" }
+    ],
+    "defaultedValues": [
+      { "property": "--breadcrumbs-height", "value": "34px", "reason": "EDS internal default — breadcrumbs not present on source site" },
+      { "property": "--fixed-font-family", "value": "Menlo, Consolas, monospace", "reason": "No code elements found on sampled pages" }
+    ]
   },
   "filesWritten": [
     "styles/styles.css",
@@ -3020,7 +3195,21 @@ Save to `migration-work/design-system-extracted.json`:
 }
 ```
 
-**This file is the completion signal.** Other skills check for its existence to know whether design extraction has already been done. Fill in all values from the actual extraction results — do not use the example numbers above.
+**This file is the completion signal.** Other skills check for its existence to know whether design extraction has already been done. Fill in all values from the actual extraction results — do not use the example values above.
+
+**CRITICAL — Provenance fields:**
+
+| Field | Purpose |
+|-------|---------|
+| `extractedValues` | CSS properties whose values came directly from the source site (computed styles, raw CSS, or Playwright measurement). These are **trustworthy**. |
+| `derivedValues` | CSS properties calculated from extracted values (e.g., font-size-s = body font-size minus 2px). These are **approximate**. |
+| `defaultedValues` | CSS properties that could NOT be extracted and fell back to EDS boilerplate or hardcoded defaults. Each entry must include the `reason` for the fallback. These are **unreliable** and should be reviewed manually. |
+
+**Rules for classification:**
+- A value is `extracted` ONLY if it came from `computed-styles.json`, `raw-css-corpus.txt`, `live-css-variables.json`, or Playwright hover/focus/resize measurement.
+- A value is `derived` if it was calculated from extracted values using the heuristics in this skill (e.g., extrapolated heading sizes, darkened hover colors).
+- A value is `defaulted` if neither extraction nor derivation produced it, and a hardcoded fallback was used. **An empty `defaultedValues` array means every single CSS property was extracted or derived — this should be verified, not assumed.**
+- The `desktopBreakpoint` field at the top level is a convenience for other skills that need to know which breakpoint to use in `@media` rules (e.g., block CSS, header CSS). It MUST match `breakpoints.json → edsMapping.desktopBreakpoint`.
 
 ### 12.4 Report
 
@@ -3045,7 +3234,8 @@ Output a brief summary to the user of:
 | `migration-work/computed-styles.json` | Raw computed style data |
 | `migration-work/raw-css-corpus.txt` | All CSS from source site |
 | `migration-work/color-palette.json` | Categorized color palette |
-| `migration-work/typography.json` | Font families, sizes, weights |
+| `migration-work/typography.json` | Font families, sizes, weights, responsive data |
+| `migration-work/typography-mobile.json` | Mobile viewport heading sizes (only if responsive typography detected) |
 | `migration-work/spacing.json` | Spacing scale, section spacing variance detail |
 | `migration-work/breakpoints.json` | Media query breakpoints |
 | `migration-work/layout.json` | Container widths (px or %), section layout pattern, nested containers, nav height |
@@ -3061,5 +3251,10 @@ This skill has NOT completed successfully if:
 - ❌ The preview shows obviously wrong colors or fonts
 - ❌ No breakpoints were captured from a responsive source site
 - ❌ `migration-work/design-system-extracted.json` was not written
+- ❌ `design-system-extracted.json` has an empty `defaultedValues` array without explicit verification that every value was extracted
+- ❌ `design-system-extracted.json` is missing the `desktopBreakpoint` field
+- ❌ `@media` rules in `styles/styles.css` use a breakpoint value that doesn't match `breakpoints.json → edsMapping.desktopBreakpoint`
+- ❌ Responsive typography was detected but `:root` uses desktop heading sizes instead of mobile sizes
+- ❌ `typography-mobile.json` was not generated for a site with responsive typography
 - ❌ CJK site detected but `--body-font-family` uses `Arial` or `Times New Roman` as fallback (will cause tofu characters)
 - ❌ CJK site detected but font service `<script>` or `<link>` tag was not captured for `head.html`

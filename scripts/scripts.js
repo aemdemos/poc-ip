@@ -7,6 +7,7 @@ import {
   decorateBlocks,
   decorateTemplateAndTheme,
   getMetadata,
+  toClassName,
   waitForFirstImage,
   loadSection,
   loadSections,
@@ -164,13 +165,25 @@ export function decorateMain(main) {
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
-  decorateTemplateAndTheme();
-  if (getMetadata('breadcrumbs').toLowerCase() === 'true') {
-    doc.body.dataset.breadcrumbs = true;
-  }
   const main = doc.querySelector('main');
   if (main) {
     decorateMain(main);
+
+    // decorateTemplateAndTheme must run AFTER processPageMetadata (inside
+    // decorateMain) so that the <meta name="template"> tag already exists.
+    decorateTemplateAndTheme();
+
+    // load template-specific CSS
+    const templateName = getMetadata('template');
+    if (templateName) {
+      const templateSlug = toClassName(templateName);
+      loadCSS(`${window.hlx.codeBasePath}/templates/${templateSlug}/${templateSlug}.css`);
+    }
+
+    if (getMetadata('breadcrumbs').toLowerCase() === 'true') {
+      doc.body.dataset.breadcrumbs = true;
+    }
+
     document.body.classList.add('appear');
     await loadSection(main.querySelector('.section'), waitForFirstImage);
   }

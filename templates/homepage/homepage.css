@@ -1,0 +1,63 @@
+/* Homepage template — page-specific styles scoped to body.homepage */
+
+/* ================================================================
+   Art direction: paragraphs/cells with two <picture> elements use
+   first = mobile image, second = desktop image.
+   Mobile-first: show mobile, hide desktop.
+   ================================================================ */
+
+/* Default (mobile): hide the desktop picture (second child) */
+body.homepage main .section.narrow p > picture:nth-of-type(2),
+body.homepage main .section.narrow p > a > picture:nth-of-type(2) {
+  display: none;
+}
+
+/* Override global p:has(> picture img) { margin: 0 } — restore 40px
+   vertical gap between consecutive image paragraphs (matches original) */
+body.homepage main .section.narrow .default-content-wrapper p:has(> picture),
+body.homepage main .section.narrow .default-content-wrapper p:has(> a > picture) {
+  margin-bottom: 40px;
+}
+
+/* Remove trailing margin from the last paragraph in a wrapper */
+body.homepage main .section.narrow .default-content-wrapper p:last-child {
+  margin-bottom: 0;
+}
+
+/* Full-width images in 保険商品のご案内 section (both mobile + desktop pictures) */
+body.homepage main .section.narrow .default-content-wrapper p:first-of-type > a > picture > img,
+body.homepage main .section.narrow .default-content-wrapper p:nth-of-type(2) > picture > img,
+body.homepage main .section.narrow:not(.columns-container) .default-content-wrapper p:last-of-type > a > picture > img {
+  width: 100%;
+}
+
+/* ================================================================
+   Desktop (>= 768px): swap — hide mobile, show desktop
+   ================================================================ */
+@media (width >= 768px) {
+  /* Hide the mobile picture only when a desktop picture exists */
+  body.homepage main .section.narrow p > picture:first-of-type:not(:only-of-type),
+  body.homepage main .section.narrow p > a > picture:first-of-type:not(:only-of-type) {
+    display: none;
+  }
+
+  body.homepage main .section.narrow p > picture:nth-of-type(2),
+  body.homepage main .section.narrow p > a > picture:nth-of-type(2) {
+    display: block;
+    text-align: center;
+  }
+
+  /* Desktop: center only image paragraphs and anchor-link nav
+     (text paragraphs stay left-aligned like the original) */
+  body.homepage main .section.narrow .default-content-wrapper p:has(> picture),
+  body.homepage main .section.narrow .default-content-wrapper p:has(> a > picture),
+  body.homepage main .section.narrow .default-content-wrapper p:has(> a[href^="#"]) {
+    text-align: center;
+  }
+
+  /* 2-col Columns block: match button-image width, centred */
+  body.homepage main .section.narrow .columns.columns-2-cols > div {
+    max-width: 768px;
+    margin: 0 auto;
+  }
+}
