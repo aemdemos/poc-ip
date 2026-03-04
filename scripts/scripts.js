@@ -143,11 +143,80 @@ function a11yLinks(main) {
 }
 
 /**
+ * Art direction: merge mobile + desktop picture pairs into a single
+ * <picture> with a <source media="(min-width: 768px)">.
+ *
+ * Handles TWO DOM shapes produced by different pipelines:
+ *
+ * A) Deployed AEM (helix pipeline) — splits images into separate <p>:
+ *    <p><picture>mobile</picture></p>
+ *    <p><picture>desktop</picture></p>
+ *
+ * B) Local preview (auto-convert hook) — keeps both in one <p>:
+ *    <p><picture>mobile</picture> <picture>desktop</picture></p>
+ *
+ * Pairs are identified by matching alt text on the <img> elements.
+ * After merging the browser natively serves the right image per viewport.
+ */
+function mergeArtDirectionPictures(container) {
+  // Helper: merge a mobile + desktop picture pair into one <picture>
+  function merge(mobilePic, desktopPic) {
+    const mobileImg = mobilePic.querySelector('img');
+    const desktopImg = desktopPic.querySelector('img');
+    if (!mobileImg || !desktopImg) return;
+    if (mobileImg.alt !== desktopImg.alt) return;
+
+    const picture = document.createElement('picture');
+    const source = document.createElement('source');
+    source.media = '(min-width: 768px)';
+    source.srcset = desktopImg.src;
+    picture.append(source);
+    picture.append(mobileImg.cloneNode(true));
+
+    mobilePic.replaceWith(picture);
+    desktopPic.remove();
+  }
+
+  // Pass 1: adjacent <picture> siblings anywhere in main (local hook + block cells)
+  container.querySelectorAll('picture + picture').forEach((desktopPic) => {
+    const mobilePic = desktopPic.previousElementSibling;
+    if (!mobilePic || mobilePic.tagName !== 'PICTURE') return;
+    merge(mobilePic, desktopPic);
+  });
+
+  // Pass 2: consecutive <p> elements each with exactly 1 <picture> (deployed AEM)
+  container.querySelectorAll(':scope > div').forEach((sectionDiv) => {
+    const paragraphs = [...sectionDiv.querySelectorAll('p')];
+    for (let i = paragraphs.length - 1; i > 0; i -= 1) {
+      const curr = paragraphs[i];
+      const prev = paragraphs[i - 1];
+      if (
+        prev.nextElementSibling === curr
+        && curr.querySelectorAll('picture').length === 1
+        && prev.querySelectorAll('picture').length === 1
+      ) {
+        const currPic = curr.querySelector('picture');
+        const prevPic = prev.querySelector('picture');
+        const currImg = currPic.querySelector('img');
+        const prevImg = prevPic.querySelector('img');
+        if (currImg && prevImg && currImg.alt === prevImg.alt) {
+          merge(prevPic, currPic);
+          curr.remove();
+          paragraphs.splice(i, 1);
+        }
+      }
+    }
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
+  // Merge art direction picture pairs before any other decoration
+  mergeArtDirectionPictures(main);
   // hopefully forward compatible button decoration
   decorateButtons(main);
   decorateIcons(main);

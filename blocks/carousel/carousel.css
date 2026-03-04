@@ -1,25 +1,5 @@
 /* Carousel - Mobile First */
 
-/* ================================================================
-   Art direction fallback: when two <picture> elements exist per slide
-   (mobile + desktop), show only the appropriate one via CSS.
-   The JS merge in carousel.js reduces them to a single <picture>
-   with a <source media>, but this CSS handles the pre-JS state and
-   any case where the merge doesn't run.
-   ================================================================ */
-/* stylelint-disable-next-line no-descending-specificity */
-.carousel > div > div > div:first-child > picture:nth-of-type(2),
-.carousel > div > div > div:first-child > p > picture:nth-of-type(2) {
-  display: none;
-}
-
-/* Pre-JS: constrain raw carousel images to full width */
-.carousel > div > div > div:first-child picture > img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
 /* Break out of section wrapper to go full-width */
 .carousel-container {
   padding: 0;
@@ -189,20 +169,6 @@
 
 /* Desktop styles */
 @media (width >= 768px) {
-  /* Art direction fallback: swap mobile → desktop when two pictures exist */
-  /* stylelint-disable-next-line no-descending-specificity */
-  .carousel > div > div > div:first-child > picture:first-of-type:not(:only-of-type),
-  .carousel > div > div > div:first-child > p > picture:first-of-type:not(:only-of-type) {
-    display: none;
-  }
-
-  /* stylelint-disable no-descending-specificity */
-  .carousel > div > div > div:first-child > picture:nth-of-type(2),
-  .carousel > div > div > div:first-child > p > picture:nth-of-type(2) {
-    display: block;
-  }
-  /* stylelint-enable no-descending-specificity */
-
   /* PC images (via <picture> art direction) set natural height */
   .carousel .carousel-slide {
     overflow: hidden;
