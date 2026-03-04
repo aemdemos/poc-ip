@@ -146,67 +146,44 @@ function a11yLinks(main) {
  * Art direction: merge mobile + desktop picture pairs into a single
  * <picture> with a <source media="(min-width: 768px)">.
  *
- * Handles TWO DOM shapes produced by different pipelines:
- *
- * A) Deployed AEM (helix pipeline) — splits images into separate <p>:
- *    <p><picture>mobile</picture></p>
- *    <p><picture>desktop</picture></p>
- *
- * B) Local preview (auto-convert hook) — keeps both in one <p>:
- *    <p><picture>mobile</picture> <picture>desktop</picture></p>
- *
- * Pairs are identified by matching alt text on the <img> elements.
- * After merging the browser natively serves the right image per viewport.
+ * Pairs are identified by consecutive <picture> elements (in document order)
+ * whose <img> share the same non-empty alt text. This works regardless of
+ * wrapper elements (<a>, <p>, <div>, etc.) so it handles every DOM shape
+ * produced by the local auto-convert hook and the deployed AEM pipeline.
  */
 function mergeArtDirectionPictures(container) {
-  // Helper: merge a mobile + desktop picture pair into one <picture>
-  function merge(mobilePic, desktopPic) {
-    const mobileImg = mobilePic.querySelector('img');
-    const desktopImg = desktopPic.querySelector('img');
-    if (!mobileImg || !desktopImg) return;
-    if (mobileImg.alt !== desktopImg.alt) return;
+  const pictures = [...container.querySelectorAll('picture')];
 
-    const picture = document.createElement('picture');
-    const source = document.createElement('source');
-    source.media = '(min-width: 768px)';
-    source.srcset = desktopImg.src;
-    picture.append(source);
-    picture.append(mobileImg.cloneNode(true));
+  for (let i = 0; i < pictures.length - 1; i += 1) {
+    const mobileImg = pictures[i].querySelector('img');
+    const desktopImg = pictures[i + 1].querySelector('img');
+    if (!mobileImg || !desktopImg) { /* skip */ } else if (
+      mobileImg.alt && mobileImg.alt === desktopImg.alt
+    ) {
+      // Build merged <picture> with desktop source + mobile fallback
+      const picture = document.createElement('picture');
+      const source = document.createElement('source');
+      source.media = '(min-width: 768px)';
+      source.srcset = desktopImg.src;
+      picture.append(source);
+      picture.append(mobileImg.cloneNode(true));
 
-    mobilePic.replaceWith(picture);
-    desktopPic.remove();
-  }
+      pictures[i].replaceWith(picture);
 
-  // Pass 1: adjacent <picture> siblings anywhere in main (local hook + block cells)
-  container.querySelectorAll('picture + picture').forEach((desktopPic) => {
-    const mobilePic = desktopPic.previousElementSibling;
-    if (!mobilePic || mobilePic.tagName !== 'PICTURE') return;
-    merge(mobilePic, desktopPic);
-  });
-
-  // Pass 2: consecutive <p> elements each with exactly 1 <picture> (deployed AEM)
-  container.querySelectorAll(':scope > div').forEach((sectionDiv) => {
-    const paragraphs = [...sectionDiv.querySelectorAll('p')];
-    for (let i = paragraphs.length - 1; i > 0; i -= 1) {
-      const curr = paragraphs[i];
-      const prev = paragraphs[i - 1];
-      if (
-        prev.nextElementSibling === curr
-        && curr.querySelectorAll('picture').length === 1
-        && prev.querySelectorAll('picture').length === 1
-      ) {
-        const currPic = curr.querySelector('picture');
-        const prevPic = prev.querySelector('picture');
-        const currImg = currPic.querySelector('img');
-        const prevImg = prevPic.querySelector('img');
-        if (currImg && prevImg && currImg.alt === prevImg.alt) {
-          merge(prevPic, currPic);
-          curr.remove();
-          paragraphs.splice(i, 1);
-        }
+      // Remove desktop picture and any ancestors left empty
+      let el = pictures[i + 1];
+      let parent = el.parentElement;
+      el.remove();
+      while (parent && parent !== container
+        && !parent.children.length && !parent.textContent.trim()) {
+        el = parent;
+        parent = el.parentElement;
+        el.remove();
       }
+
+      pictures.splice(i + 1, 1);
     }
-  });
+  }
 }
 
 /**
