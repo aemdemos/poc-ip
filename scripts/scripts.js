@@ -165,6 +165,8 @@ function mergeArtDirectionPictures(container) {
       const source = document.createElement('source');
       source.media = '(min-width: 768px)';
       source.srcset = desktopImg.src;
+      source.width = desktopImg.getAttribute('width') || desktopImg.naturalWidth;
+      source.height = desktopImg.getAttribute('height') || desktopImg.naturalHeight;
       picture.append(source);
       picture.append(mobileImg.cloneNode(true));
 
