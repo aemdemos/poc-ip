@@ -165,6 +165,8 @@ function mergeArtDirectionPictures(container) {
       const source = document.createElement('source');
       source.media = '(min-width: 768px)';
       source.srcset = desktopImg.src;
+      source.width = desktopImg.getAttribute('width') || desktopImg.naturalWidth;
+      source.height = desktopImg.getAttribute('height') || desktopImg.naturalHeight;
       picture.append(source);
       picture.append(mobileImg.cloneNode(true));
 
@@ -184,6 +186,10 @@ function mergeArtDirectionPictures(container) {
       pictures.splice(i + 1, 1);
     }
   }
+
+  // Remove empty <p> elements left behind by the AEM pipeline
+  // (e.g. from the space between two images on the same markdown line)
+  container.querySelectorAll('p:empty').forEach((p) => p.remove());
 }
 
 /**
