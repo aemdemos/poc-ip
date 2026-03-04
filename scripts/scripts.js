@@ -184,6 +184,10 @@ function mergeArtDirectionPictures(container) {
       pictures.splice(i + 1, 1);
     }
   }
+
+  // Remove empty <p> elements left behind by the AEM pipeline
+  // (e.g. from the space between two images on the same markdown line)
+  container.querySelectorAll('p:empty').forEach((p) => p.remove());
 }
 
 /**
