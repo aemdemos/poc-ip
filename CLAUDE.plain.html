@@ -11,6 +11,7 @@
 <li>Re-save the <code>.md</code> file (use Edit to trigger the hook) — hook will regenerate both files</li>
 <li>Reload the preview</li>
 </ol><p><strong>Note:</strong> <code>convert_markdown_to_html</code> is still useful for Document Authoring (DA) upload workflows, but NEVER for local preview content files.</p></div>
+<div><h2 id="project-conventions-source-americanhomecojp">Project Conventions (Source: americanhome.co.jp)</h2><p><strong>Breakpoints:</strong> The original site (americanhome.co.jp) uses <code>768px</code> as its primary mobile→desktop content breakpoint and <code>1024px</code> for the header/navigation desktop switch. General content and block CSS should use <code>@media (width >= 768px)</code>. The header block uses <code>@media (width >= 1024px)</code> to match the original site's navigation breakpoint. Do NOT use <code>600px</code> from EDS boilerplate defaults.</p><p><strong>Boilerplate blocks:</strong> Several blocks still contain untouched EDS boilerplate CSS (e.g., <code>form</code>, <code>tabs</code>, <code>table</code>). When styling these blocks, replace any boilerplate <code>600px</code> breakpoints with <code>768px</code> to match the project convention.</p><p><strong>Image art direction:</strong> The original site uses server-side device detection to serve different images for mobile vs desktop (e.g., <code>-sp.jpeg</code> for mobile, <code>-pc.jpeg</code> for desktop). The carousel block supports art direction by authoring two images per cell in markdown (mobile first, desktop second). The <code>carousel.js</code> <code>createSlide</code> function merges them into a single <code>&#x3C;picture></code> element with a <code>&#x3C;source media="(min-width: 768px)"></code> for desktop and the mobile image as the <code>&#x3C;img></code> fallback.</p></div>
 <div><h2 id="custom-skills">Custom Skills</h2><h3 id="design-system-extraction-must-run-before-page-migration">Design System Extraction (MUST run BEFORE page migration)</h3><p><strong>CRITICAL: When a user asks to migrate, import, or convert a site or page, ALWAYS suggest running the design system extraction skill FIRST if <code>styles/styles.css</code> still contains EDS boilerplate defaults. Do not proceed with page migration until the design foundation is set.</strong></p><p><strong>Trigger patterns:</strong></p><ul>
 <li>User says: "migrate", "import", "convert" any site or page → check if design system was already extracted. If not, suggest it first.</li>
 <li>User says: "extract design", "get styling", "setup styles", "general styling", "design system" → invoke directly.</li>
@@ -27,3 +28,19 @@ Once <code>migration-work/design-system-extracted.json</code> exists with <code>
 <li><strong>DO allow block-specific styling</strong> — blocks may still get their own CSS in <code>blocks/{blockname}/{blockname}.css</code>. This bypass only covers site-wide design tokens, not block-level styling.</li>
 <li><strong>Check before any design operation:</strong> Before running any design-related skill or sub-step, first check: <code>ls migration-work/design-system-extracted.json</code>. If it exists, read it, confirm the domain matches, and skip the design extraction work.</li>
 </ol></div>
+<div><h3 id="navigation--header-migration-use-navigation-orchestrator">Navigation / Header Migration (use Navigation Orchestrator)</h3><p><strong>When a user asks to migrate, import, replicate, or instrument a site header or navigation, ALWAYS use the Navigation Orchestrator skill.</strong> This applies to desktop nav bars, mobile hamburger menus, megamenus, dropdowns, locale selectors, and search bars within headers.</p><p><strong>Trigger patterns:</strong></p><ul>
+<li>User says: "migrate header", "migrate navigation", "instrument header", "replicate nav", "set up header from URL" → invoke directly.</li>
+<li>User says: "migrate header from https://…" or provides a header screenshot → invoke directly.</li>
+<li>User says: "validate nav structure", "fix header", "header doesn't match source" → invoke for validation/remediation.</li>
+</ul><p><strong>How to invoke:</strong>
+Read and follow the complete workflow in <code>.claude/skills/excat-navigation-orchestrator/SKILL.md</code>. Execute every phase in order — desktop first (Phases 1–3, aggregate, implement, validate), then mobile only after customer confirmation. Do not skip phases or validation gates.</p><p><strong>Prerequisites:</strong></p><ul>
+<li>The page must already be migrated (use <code>excat-page-migration</code> first if it isn't).</li>
+<li>The design system should already be extracted (see "Design System Extraction" above).</li>
+<li>A local dev server must be running at <code>http://localhost:3000</code>.</li>
+<li>Screenshot evidence is required — the skill will never assume header structure.</li>
+</ul><p><strong>Key rules:</strong></p><ul>
+<li>Desktop implementation must include full CSS styling and megamenu images — no raw bullet lists.</li>
+<li>All text content, links, and labels go in <code>content/nav.md</code>, never hardcoded in <code>header.js</code>.</li>
+<li>Every component must reach ≥ 95% visual similarity via per-component critique before reporting to the customer.</li>
+<li>Mobile is implemented only after customer confirms desktop; mobile follows the same structural + style validation rigor.</li>
+</ul><p><strong>Do NOT use for:</strong> Simple link lists without screenshot evidence, pages not yet migrated, footer or non-header layout work.</p></div>

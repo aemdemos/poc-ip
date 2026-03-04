@@ -68,19 +68,6 @@
   src: local('Hiragino Kaku Gothic ProN'), local('Yu Gothic Medium'), local('Meiryo');
 }
 
-/* responsive adjustments — desktop */
-@media (width >= 900px) {
-  :root {
-    /* heading sizes — desktop */
-    --heading-font-size-xxl: 32px;
-    --heading-font-size-xl: 28px;
-    --heading-font-size-l: 22px;
-    --heading-font-size-m: 20px;
-    --heading-font-size-s: 18px;
-    --heading-font-size-xs: 16px;
-  }
-}
-
 html {
   scroll-behavior: smooth;
 }
@@ -100,7 +87,7 @@ body.appear {
 }
 
 header {
-  height: var(--header-height);
+  height: auto;
 }
 
 header .header,
@@ -111,12 +98,6 @@ footer .footer {
 header .header[data-block-status="loaded"],
 footer .footer[data-block-status="loaded"] {
   visibility: visible;
-}
-
-@media (width >= 900px) {
-  body[data-breadcrumbs] {
-    --header-height: calc(var(--nav-height) + var(--breadcrumbs-height));
-  }
 }
 
 h1,
@@ -154,6 +135,11 @@ pre,
 blockquote {
   margin-top: 0;
   margin-bottom: 15px;
+}
+
+/* images wrapped in <p><picture><img></picture></p> should not carry paragraph margin */
+p:has(> picture img) {
+  margin: 0;
 }
 
 code,
@@ -249,7 +235,7 @@ main > .section {
 }
 
 main > .section > div {
-  max-width: 85%;
+  max-width: 99%;
   margin: auto;
   padding: 0 15px;
 }
@@ -258,9 +244,39 @@ main > .section:first-of-type {
   margin-top: 0;
 }
 
-/* narrow sections — replicates the double-nested 85%-of-85% container pattern from the original site */
+/* narrow sections */
+main > .section.narrow {
+  margin: 30px 0;
+}
+
 main > .section.narrow > div {
-  max-width: 72.25%;
+  max-width: 100%;
+  padding: 0 30px;
+}
+
+/* h2 left accent bar */
+main > .section.narrow h2 {
+  position: relative;
+  padding-left: 15px;
+  font-weight: 400;
+}
+
+main > .section.narrow h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  width: 5px;
+  height: 80%;
+  background-color: var(--heading-color);
+}
+
+/* h3 bottom border */
+main > .section.narrow h3 {
+  font-weight: 400;
+  color: var(--text-color);
+  padding-bottom: 3px;
+  border-bottom: 3px solid var(--heading-color);
 }
 
 /* section metadata */
@@ -269,4 +285,68 @@ main .section.highlight {
   background-color: var(--light-color);
   margin: 0;
   padding: 0;
+}
+
+/* Light section default content — padded, and side-by-side on desktop */
+main .section.light > .default-content-wrapper {
+  padding: 20px 30px;
+}
+
+main .section.light > .default-content-wrapper .button-container .button {
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+/* --- responsive adjustments — desktop --- */
+
+@media (width >= 768px) {
+  :root {
+    --heading-font-size-xxl: 32px;
+    --heading-font-size-xl: 28px;
+    --heading-font-size-l: 22px;
+    --heading-font-size-m: 20px;
+    --heading-font-size-s: 18px;
+    --heading-font-size-xs: 16px;
+  }
+
+  main > .section.narrow {
+    margin: 40px 0;
+  }
+
+  main > .section.narrow > div {
+    padding: 0 46px;
+  }
+
+  main .section.light > .default-content-wrapper {
+    padding: 20px 46px;
+  }
+
+  main .section.light:not(.narrow) > .default-content-wrapper {
+    max-width: 72.25%;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 40px 46px;
+  }
+
+  main .section.light:not(.narrow) > .default-content-wrapper > p {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+}
+
+@media (width >= 1024px) {
+  body[data-breadcrumbs] {
+    --header-height: calc(var(--nav-height) + var(--breadcrumbs-height));
+  }
+}
+
+@media (width > 1200px) {
+  main > .section > div {
+    max-width: 85%;
+  }
+
+  main > .section.narrow > div {
+    max-width: 72.25%;
+  }
 }

@@ -19,7 +19,7 @@
   display: block;
 }
 
-@media (width >= 900px) {
+@media (width >= 768px) {
   .columns > div {
     align-items: center;
     flex-direction: unset;
@@ -29,5 +29,24 @@
   .columns > div > div {
     flex: 1;
     order: unset;
+  }
+
+  /* 3-col: icon badges with description text — centred, natural-width images */
+  .columns.columns-3-cols > div {
+    align-items: stretch;
+  }
+
+  .columns.columns-3-cols > div > div {
+    text-align: center;
+    padding: 0 12px;
+  }
+
+  .columns.columns-3-cols > div > div:not(:last-child) {
+    border-right: 2px solid #ccc;
+  }
+
+  .columns.columns-3-cols img {
+    width: auto;
+    margin: 0 auto;
   }
 }

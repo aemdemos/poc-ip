@@ -79,6 +79,28 @@ function createSlide(row, slideIndex, carouselId) {
 
   row.querySelectorAll(':scope > div').forEach((column, colIdx) => {
     column.classList.add(`carousel-slide-${colIdx === 0 ? 'image' : 'content'}`);
+
+    // Art direction: when the image column has two <picture> elements,
+    // merge them into one <picture> with a desktop <source> and mobile <img>.
+    if (colIdx === 0) {
+      const pictures = column.querySelectorAll('picture');
+      if (pictures.length === 2) {
+        const mobileImg = pictures[0].querySelector('img');
+        const desktopImg = pictures[1].querySelector('img');
+        if (mobileImg && desktopImg) {
+          const picture = document.createElement('picture');
+          const source = document.createElement('source');
+          source.media = '(min-width: 768px)';
+          source.srcset = desktopImg.src;
+          picture.append(source);
+          const img = mobileImg.cloneNode(true);
+          picture.append(img);
+          pictures[0].replaceWith(picture);
+          pictures[1].remove();
+        }
+      }
+    }
+
     slide.append(column);
   });
 
