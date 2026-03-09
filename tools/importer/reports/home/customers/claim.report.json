@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://www.americanhome.co.jp/home/customers/claim",
+  "path": "home/customers/claim",
+  "timestamp": "2026-03-09T08:11:12.226Z",
+  "title": "事故受付・保険金請求｜アメリカンホーム保険会社",
+  "template": "americanhome-subpage",
+  "blocks": [
+    "columns",
+    "columns",
+    "columns-gray-box"
+  ]
+}

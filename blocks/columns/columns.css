@@ -7,6 +7,12 @@
   width: 100%;
 }
 
+/* CTA button images (inside links) keep their natural size */
+.columns a img {
+  width: auto;
+  max-width: 100%;
+}
+
 .columns > div > div {
   order: 1;
 }
@@ -48,5 +54,10 @@
   .columns.columns-3-cols img {
     width: auto;
     margin: 0 auto;
+  }
+
+  /* Centre CTA button paragraphs in 2-col text cells (claim page only — scoped via columns-6-cols) */
+  main:has(.columns-6-cols) .columns.columns-2-cols:not(.bordered, .gray-box) > div > div > p:last-child:has(> a:only-child > img) {
+    text-align: center;
   }
 }

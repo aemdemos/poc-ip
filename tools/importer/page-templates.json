@@ -29,6 +29,37 @@
           "section": "light"
         }
       ]
+    },
+    {
+      "name": "americanhome-subpage",
+      "urls": [
+        "https://www.americanhome.co.jp/home/customers",
+        "https://www.americanhome.co.jp/home/customers/deduction",
+        "https://www.americanhome.co.jp/home/customers/claim"
+      ],
+      "description": "Interior subpage with blue H1 banner, service cards, columns blocks, and contact sections for policyholder information",
+      "blocks": [
+        {
+          "name": "columns",
+          "instances": [
+            ".container:has(> .cmp-container > .aem-Grid > .image.thirdwidth)",
+            ".container.halfwidth.nobottomspace.notopspace:has(.teaserflex + .image)",
+            ".container.quarterwidth + .container.threequarterwidth"
+          ]
+        },
+        {
+          "name": "columns-bordered",
+          "instances": [
+            ".halfwidth.paleblueborder.completeborder"
+          ]
+        },
+        {
+          "name": "columns-gray-box",
+          "instances": [
+            ".container.aiglightgray.completeborder"
+          ]
+        }
+      ]
     }
   ]
 }

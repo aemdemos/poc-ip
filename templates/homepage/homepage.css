@@ -29,6 +29,7 @@ body.homepage main .section.narrow:not(.columns-container) .default-content-wrap
   body.homepage main .section.narrow .default-content-wrapper p:has(> a > picture),
   body.homepage main .section.narrow .default-content-wrapper p:has(> a[href^="#"]) {
     text-align: center;
+    transition: opacity 0.2s, background-color 0.2s;
   }
 
   /* 2-col Columns block: match button-image width, centred */
