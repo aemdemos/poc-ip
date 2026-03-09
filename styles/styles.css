@@ -341,6 +341,11 @@ main .section.light > .default-content-wrapper .button-container .button {
   }
 }
 
+/* Centre the CTA button after the 6-col STEP grid (claim page only) */
+.columns-wrapper:has(.columns-6-cols) + .default-content-wrapper > p {
+  text-align: center;
+}
+
 @media (width > 1200px) {
   main > .section > div {
     max-width: 85%;
