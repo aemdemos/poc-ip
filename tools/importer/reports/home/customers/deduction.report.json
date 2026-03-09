@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://www.americanhome.co.jp/home/customers/deduction",
+  "path": "home/customers/deduction",
+  "timestamp": "2026-03-06T14:54:52.872Z",
+  "title": "保険料控除証明｜アメリカンホーム保険会社",
+  "template": "americanhome-subpage",
+  "blocks": [
+    "columns",
+    "columns",
+    "columns-gray-box"
+  ]
+}

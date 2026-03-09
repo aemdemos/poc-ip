@@ -50,6 +50,12 @@
 .carousel .carousel-slide .carousel-slide-image {
   width: 100%;
   line-height: 0;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.carousel .carousel-slide .carousel-slide-image:hover {
+  opacity: 0.7;
+  background-color: #f2f6fb;
 }
 
 /* stylelint-disable-next-line no-descending-specificity */
