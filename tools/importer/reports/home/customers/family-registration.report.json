@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "url": "https://www.americanhome.co.jp/home/customers/family_registration",
+  "path": "home/customers/family-registration",
+  "timestamp": "2026-03-10T16:22:41.972Z",
+  "title": "ご家族情報登録制度｜アメリカンホーム保険会社",
+  "template": "americanhome-subpage",
+  "blocks": [
+    "columns-gray-box"
+  ]
+}

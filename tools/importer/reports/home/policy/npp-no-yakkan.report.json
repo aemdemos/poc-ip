@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "url": "https://www.americanhome.co.jp/home/policy/npp_no_yakkan",
+  "path": "home/policy/npp-no-yakkan",
+  "timestamp": "2026-03-16T18:07:54.341Z",
+  "title": "Web約款・重要事項説明書（火災保険・地震保険）｜アメリカンホーム保険会社",
+  "template": "americanhome-yakkan",
+  "blocks": [
+    "accordion",
+    "accordion"
+  ]
+}

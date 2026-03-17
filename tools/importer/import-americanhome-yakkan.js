@@ -1,59 +1,42 @@
 /* eslint-disable */
 /* global WebImporter */
 
-// PARSER IMPORTS - Subpage template parsers
-import subpageColumnsParser from './parsers/subpage-columns.js';
-import columnsGrayBoxParser from './parsers/columns-gray-box.js';
+// PARSER IMPORTS - Yakkan template parsers
+import accordionParser from './parsers/yakkan-accordion.js';
 
-// TRANSFORMER IMPORTS - Site-wide and subpage-specific transformers
+// TRANSFORMER IMPORTS - Site-wide and yakkan-specific transformers
 import cleanupTransformer from './transformers/americanhome-cleanup.js';
-import subpageTransformer from './transformers/americanhome-subpage.js';
+import yakkanTransformer from './transformers/americanhome-yakkan.js';
 
 // PARSER REGISTRY - Map block names to parser functions
 const parsers = {
-  'columns': subpageColumnsParser,
-  'columns-gray-box': columnsGrayBoxParser,
+  'accordion': accordionParser,
 };
 
 // TRANSFORMER REGISTRY - Executed in order
+// yakkanTransformer MUST run before cleanupTransformer in beforeTransform
+// so the art direction map is built before mobile containers are removed.
 const transformers = [
+  yakkanTransformer,
   cleanupTransformer,
-  subpageTransformer,
 ];
 
-// PAGE TEMPLATE CONFIGURATION - Embedded from page-templates.json
+// Module-level art direction map (populated by yakkanTransformer.beforeTransform)
+const artDirectionMap = new Map();
+
+// PAGE TEMPLATE CONFIGURATION
 const PAGE_TEMPLATE = {
-  name: 'americanhome-subpage',
-  description: 'Interior subpage with blue H1 banner, service cards, columns blocks, and contact sections for policyholder information',
+  name: 'americanhome-yakkan',
+  description: 'Policy terms (yakkan) pages with sub-navigation, accordion blocks, and PDF download buttons',
   urls: [
-    'https://www.americanhome.co.jp/home/customers',
-    'https://www.americanhome.co.jp/home/customers/deduction',
-    'https://www.americanhome.co.jp/home/customers/claim',
-    'https://www.americanhome.co.jp/home/customers/disability',
-    'https://www.americanhome.co.jp/home/customers/family_registration',
-    'https://www.americanhome.co.jp/home/customers/confirmation',
+    'https://www.americanhome.co.jp/home/policy/pa_yakkan',
+    'https://www.americanhome.co.jp/home/policy/npp_no_yakkan',
   ],
   blocks: [
     {
-      name: 'columns',
+      name: 'accordion',
       instances: [
-        '.container:has(> .cmp-container > .aem-Grid > .image.thirdwidth)',
-        '.container.halfwidth.nobottomspace.notopspace:has(.teaserflex + .image)',
-        '.container.quarterwidth + .container.threequarterwidth',
-        '.flexbox-container:has(> .cmp-container > .aem-Grid > .image.halfwidth)',
-      ],
-    },
-    {
-      name: 'columns-bordered',
-      instances: [
-        '.halfwidth.paleblueborder.completeborder',
-      ],
-    },
-    {
-      name: 'columns-gray-box',
-      instances: [
-        '.container.aiglightgray.completeborder',
-        '.container.paleblueborder.completeborder:not(.halfwidth):has(> .cmp-container > .aem-Grid > .container > .cmp-container > .aem-Grid > .container.aiglightgray)',
+        '.accordion.panelcontainer.jp-accordion',
       ],
     },
   ],
@@ -97,6 +80,31 @@ function findBlocksOnPage(document, template) {
   return pageBlocks;
 }
 
+/**
+ * Build art direction map from mobile containers.
+ * Must be called BEFORE cleanup removes .hb_mobile__only containers.
+ */
+function buildArtDirectionMap(element) {
+  artDirectionMap.clear();
+  const mobileContainers = element.querySelectorAll(
+    '.hb_mobile__only, [class*="hb_mobile__only"]'
+  );
+  mobileContainers.forEach((container) => {
+    const links = container.querySelectorAll('a[href*=".pdf"]');
+    links.forEach((link) => {
+      const img = link.querySelector('img');
+      if (img) {
+        const href = link.getAttribute('href');
+        const src = img.getAttribute('src');
+        if (href && src && !artDirectionMap.has(href)) {
+          artDirectionMap.set(href, src);
+        }
+      }
+    });
+  });
+  console.log(`[yakkan] Art direction map: ${artDirectionMap.size} entries`);
+}
+
 // EXPORT DEFAULT CONFIGURATION
 export default {
   transform: (payload) => {
@@ -104,7 +112,10 @@ export default {
 
     const main = document.body;
 
-    // 1. Execute beforeTransform transformers (cleanup header, footer, mobile duplicates)
+    // 0. Build art direction map before any cleanup
+    buildArtDirectionMap(main);
+
+    // 1. Execute beforeTransform transformers
     executeTransformers('beforeTransform', main, payload);
 
     // 2. Find blocks on page using embedded template
@@ -115,14 +126,14 @@ export default {
       const parser = parsers[block.name];
       if (parser) {
         try {
-          parser(block.element, { document, url, params });
+          parser(block.element, { document, url, params, artDirectionMap });
         } catch (e) {
           console.error(`Failed to parse ${block.name} (${block.selector}):`, e);
         }
       }
     });
 
-    // 4. Execute afterTransform transformers (reference numbers, section breaks)
+    // 4. Execute afterTransform transformers
     executeTransformers('afterTransform', main, payload);
 
     // 5. Apply WebImporter built-in rules
@@ -132,9 +143,7 @@ export default {
     WebImporter.rules.transformBackgroundImages(main, document);
     WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
 
-    // 6. Add Template to the metadata block (derived from URL path)
-    const pagePath = new URL(params.originalURL).pathname.replace(/\/$/, '').replace(/\.html$/, '');
-    const templateName = pagePath.split('/').pop() || 'subpage';
+    // 6. Add template: yakkan to the metadata block
     const allTables = main.querySelectorAll('table');
     for (const table of allTables) {
       const th = table.querySelector('th');
@@ -143,7 +152,7 @@ export default {
         const tdKey = document.createElement('td');
         tdKey.textContent = 'template';
         const tdVal = document.createElement('td');
-        tdVal.textContent = templateName;
+        tdVal.textContent = 'yakkan';
         tr.appendChild(tdKey);
         tr.appendChild(tdVal);
         table.appendChild(tr);

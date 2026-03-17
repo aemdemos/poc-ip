@@ -13,8 +13,8 @@ body.homepage main .section.narrow .default-content-wrapper p:last-child {
 }
 
 /* Full-width images in 保険商品のご案内 section */
-body.homepage main .section.narrow .default-content-wrapper p:first-of-type > a > picture > img,
 body.homepage main .section.narrow .default-content-wrapper p:nth-of-type(2) > picture > img,
+body.homepage main .section.narrow .default-content-wrapper p:first-of-type > a > picture > img,
 body.homepage main .section.narrow:not(.columns-container) .default-content-wrapper p:last-of-type > a > picture > img {
   width: 100%;
 }

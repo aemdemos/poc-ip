@@ -1,0 +1,73 @@
+/* Customers template — ご契約者さまメニュー一覧 */
+
+/* Blue banner for the first section (H1 title) */
+body.customers main > .section:first-of-type {
+  background-color: #001871;
+  padding: 40px 0;
+}
+
+body.customers main > .section:first-of-type h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  padding-left: 30px;
+}
+
+/* Remove top margin on the section right after the banner */
+body.customers main > .section:nth-of-type(2) {
+  margin-top: 0;
+  padding-top: 27px;
+}
+
+/* Within-section spacing: gap between headings/text and block wrappers */
+body.customers main > .section > .default-content-wrapper + .columns-wrapper,
+body.customers main > .section > .columns-wrapper + .default-content-wrapper {
+  margin-top: 30px;
+}
+
+/* H2 section headings: 24px (vs global 28px desktop) */
+body.customers main h2 {
+  font-size: 24px;
+  line-height: 36px;
+}
+
+/* H3 section headings: 18.72px */
+body.customers main h3 {
+  font-size: 18.72px;
+}
+
+/* Reference number row: right-align page number in second column */
+body.customers main > .section:last-of-type .columns.columns-2-cols > div > div:last-child p {
+  text-align: right;
+}
+
+/* ================================================================
+   Desktop (>= 768px)
+   ================================================================ */
+@media (width >= 768px) {
+  body.customers main > .section:first-of-type h1 {
+    font-size: 32px;
+    padding-left: 46px;
+  }
+
+  /* Wider section gaps on desktop (60px vs global 40px) */
+  body.customers main > .section.narrow {
+    margin-top: 60px;
+    margin-bottom: 60px;
+  }
+
+  body.customers main > .section:nth-of-type(2) {
+    margin-top: 0;
+  }
+}
+
+@media (width > 1200px) {
+  /* Align H1 banner text with the narrow content area below.
+     The banner div gets max-width: 85% (level 1) from the global rule.
+     H1 padding simulates level 2: 7.5% centering margin + 15px inner padding. */
+  body.customers main > .section:first-of-type h1 {
+    padding-left: calc(7.5% + 15px);
+    padding-right: calc(7.5% + 15px);
+  }
+}

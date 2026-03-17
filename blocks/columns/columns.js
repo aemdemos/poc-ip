@@ -30,7 +30,7 @@ export default function decorate(block) {
       } else if (pictures.length === 0) {
         // Handle bare <img> tags (external URLs not wrapped in <picture> by EDS)
         const imgParas = [...col.querySelectorAll(':scope > p')].filter(
-          (p) => p.children.length === 1 && p.querySelector('img'),
+          (p) => p.children.length === 1 && p.querySelector(':scope > img'),
         );
         if (imgParas.length === 2) {
           const mobileImg = imgParas[0].querySelector('img');

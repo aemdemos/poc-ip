@@ -1,0 +1,264 @@
+/* Family Registration template — ご家族情報登録制度 */
+
+/* Blue banner for the first section (H1 title) */
+body.family-registration main > .section:first-of-type {
+  background-color: #001871;
+  padding: 40px 0;
+}
+
+body.family-registration main > .section:first-of-type h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  padding-left: 30px;
+}
+
+/* Remove top margin on the section right after the banner */
+body.family-registration main > .section:nth-of-type(2) {
+  margin-top: 0;
+  padding-top: 27px;
+}
+
+/* Within-section spacing: gap between headings/text and block wrappers */
+body.family-registration main > .section > .default-content-wrapper + .columns-wrapper,
+body.family-registration main > .section > .columns-wrapper + .default-content-wrapper,
+body.family-registration main > .section > .columns-wrapper + .columns-wrapper {
+  margin-top: 30px;
+}
+
+/* H3 section headings: 18.72px */
+body.family-registration main h3 {
+  font-size: 18.72px;
+}
+
+/* Pale blue bordered box around the three illustration images after
+   "ご家族情報登録制度でできること" heading (matches original site's
+   paleblueborder container: 2px solid #c7dbf4).
+   Uses adjacent sibling combinators to target exactly the first 3 <p>
+   after the h2, without leaking to the 4th. */
+
+/* First image: top + left + right borders */
+body.family-registration h2#ご家族情報登録制度でできること + p {
+  border: 2px solid #c7dbf4;
+  border-bottom: none;
+  padding: 15px 15px 0;
+  margin-bottom: 0;
+}
+
+/* Second image: left + right borders only */
+body.family-registration h2#ご家族情報登録制度でできること + p + p {
+  border-left: 2px solid #c7dbf4;
+  border-right: 2px solid #c7dbf4;
+  padding: 0 15px;
+  margin-bottom: 0;
+}
+
+/* Third image: left + right + bottom borders */
+body.family-registration h2#ご家族情報登録制度でできること + p + p + p {
+  border: 2px solid #c7dbf4;
+  border-top: none;
+  padding: 0 15px 15px;
+  margin-bottom: 15px;
+}
+
+/* ================================================================
+   Phone-method bordered box (お電話による… sections)
+   Original: paleblueborder completeborder container
+   — 2px solid #c7dbf4 outer border
+   — #eee gray header bar with centered H3
+   — content body with 15px inner padding
+   ================================================================ */
+
+/* H3 header: top + left + right borders, gray background */
+body.family-registration h3[id^="お電話による"] {
+  border: 2px solid #c7dbf4;
+  border-bottom: none;
+  background: #eee;
+  color: #333;
+  text-align: center;
+  font-weight: 400;
+  line-height: 40px;
+  padding: 0;
+  margin-top: 30px;
+  margin-bottom: 0;
+}
+
+/* Description paragraph: left + right borders */
+body.family-registration h3[id^="お電話による"] + p {
+  border-left: 2px solid #c7dbf4;
+  border-right: 2px solid #c7dbf4;
+  padding: 15px 15px 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* CTA button paragraph: left + right + bottom borders */
+body.family-registration h3[id^="お電話による"] + p + p {
+  border: 2px solid #c7dbf4;
+  border-top: none;
+  padding: 0 15px 15px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+/* CTA image: natural width, centered */
+body.family-registration h3[id^="お電話による"] + p + p img {
+  width: auto;
+  max-width: 100%;
+}
+
+/* ================================================================
+   Service-card bordered columns — mobile overrides
+   Original: 18.72px, weight 400, 15px cell padding
+   ================================================================ */
+
+/* H3 inside service-card bordered columns: match original 18.72px normal weight */
+body.family-registration .columns.bordered:has(> div > div > h3:first-child) h3 {
+  font-size: 18.72px;
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
+/* Service-card cell padding: 15px on mobile (original uses ~15px) */
+body.family-registration .columns.bordered:has(> div > div > h3:first-child) > div > div {
+  padding: 15px;
+}
+
+/* ================================================================
+   Registration method card — full-width H3 image headers on mobile
+   Original: 341px wide headers filling the bordered container
+   ================================================================ */
+
+/* Method card H3 image: remove side borders on mobile so image fills full width */
+body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div {
+  border: 2px solid #c7dbf4;
+}
+
+/* Description paragraph after image H3: narrower padding on mobile */
+body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div > h3 + p {
+  padding: 10px 10px 0;
+}
+
+body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div > p:not(:nth-child(2)) {
+  padding: 0 10px;
+}
+
+/* CTA button image: centered, natural width */
+body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div > p:last-child {
+  text-align: center;
+  padding: 10px 10px 15px;
+}
+
+body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div > p:last-child img {
+  width: auto;
+  max-width: 90%;
+}
+
+/* ================================================================
+   Anchor navigation links — vertical list (one per line)
+   Original site displays each anchor link as a block with arrow icon.
+   ================================================================ */
+body.family-registration a[href^="#"] {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* ================================================================
+   Art direction: mobile image first, desktop image second.
+   Content paragraphs, H3 headers, and anchor links all contain
+   two consecutive <img> elements — mobile then desktop.
+   ================================================================ */
+
+/* Mobile (base): hide desktop image (second consecutive img) */
+body.family-registration p > img + img,
+body.family-registration h3 > img + img,
+body.family-registration a > img + img {
+  display: none;
+}
+
+/* Method card H3 needs higher specificity to override block CSS */
+body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) h3 > img + img {
+  display: none;
+}
+
+/* Reference number row: right-align page number in second column */
+body.family-registration main > .section:last-of-type .columns.columns-2-cols > div > div:last-child p {
+  text-align: right;
+}
+
+/* ================================================================
+   Desktop (>= 768px)
+   ================================================================ */
+@media (width >= 768px) {
+  body.family-registration main > .section:first-of-type h1 {
+    font-size: 32px;
+    padding-left: 46px;
+  }
+
+  /* Wider section gaps on desktop (60px vs global 40px) */
+  body.family-registration main > .section.narrow {
+    margin-top: 60px;
+    margin-bottom: 60px;
+  }
+
+  body.family-registration main > .section:nth-of-type(2) {
+    margin-top: 0;
+  }
+
+  /* Restore service-card H3 to desktop specs */
+  body.family-registration .columns.bordered:has(> div > div > h3:first-child) h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 12px;
+  }
+
+  /* Restore service-card cell padding for desktop */
+  body.family-registration .columns.bordered:has(> div > div > h3:first-child) > div > div {
+    padding: 20px;
+  }
+
+  /* Art direction: show desktop image, hide mobile image */
+  body.family-registration p > img:has(+ img),
+  body.family-registration h3 > img:has(+ img),
+  body.family-registration a > img:has(+ img) {
+    display: none;
+  }
+
+  body.family-registration p > img + img,
+  body.family-registration h3 > img + img,
+  body.family-registration a > img + img {
+    display: inline;
+  }
+
+  /* Method card H3 art direction: higher specificity override */
+  body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) h3 > img:has(+ img) {
+    display: none;
+  }
+
+  body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) h3 > img + img {
+    display: block;
+    width: 100%;
+  }
+
+  /* Restore method card padding for desktop */
+  body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div > h3 + p {
+    padding: 15px 15px 0;
+  }
+
+  body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div > p:not(:nth-child(2)) {
+    padding: 0 15px;
+  }
+
+  body.family-registration .columns.bordered:has(> div > div > h3:first-child:has(> img)) > div > div > p:last-child {
+    padding: 10px 15px 15px;
+  }
+}
+
+@media (width > 1200px) {
+  body.family-registration main > .section:first-of-type h1 {
+    padding-left: calc(7.5% + 15px);
+    padding-right: calc(7.5% + 15px);
+  }
+}
