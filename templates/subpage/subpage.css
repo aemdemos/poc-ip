@@ -1,4 +1,5 @@
-/* Subpage template — interior pages with blue H1 banner */
+/* Subpage template — shared styling for interior pages.
+   Local override of remote subpage.css to fix layout patterns. */
 
 /* Blue banner for the first section (H1 title) */
 body.subpage main > .section:first-of-type {
@@ -6,9 +7,8 @@ body.subpage main > .section:first-of-type {
   padding: 40px 0;
 }
 
-body.subpage main > .section:first-of-type > div {
-  max-width: 100%;
-}
+/* Pattern 1 FIX: removed max-width: 100% on banner div —
+   let the global `main > .section > div { max-width: 85% }` apply */
 
 body.subpage main > .section:first-of-type h1 {
   color: #fff;
@@ -18,56 +18,32 @@ body.subpage main > .section:first-of-type h1 {
   padding-left: 30px;
 }
 
-@media (width >= 768px) {
-  body.subpage main > .section:first-of-type h1 {
-    font-size: 32px;
-    padding-left: 46px;
-  }
-
-  /* Wider section gaps on desktop to match original (~60px vs global 40px) */
-  body.subpage main > .section.narrow {
-    margin: 60px 0;
-  }
-
-  body.subpage main > .section:nth-of-type(2) {
-    margin-top: 0;
-  }
-}
-
-@media (width > 1200px) {
-  body.subpage main > .section:first-of-type h1 {
-    padding-left: calc((100% - 72.25%) / 2);
-  }
-}
-
-/* Remove top margin on the section right after the banner, but add padding
-   to match original ~67px gap (banner padding-bottom 40px + 27px here) */
+/* Remove top margin on the section right after the banner */
 body.subpage main > .section:nth-of-type(2) {
   margin-top: 0;
   padding-top: 27px;
 }
 
-/* Within-section spacing: 30px between a heading/text area and a block wrapper.
-   Only targets default-content-wrapper adjacencies, not block-to-block pairs
-   (which vary per page and are handled individually below). */
+/* Within-section spacing: gap between headings/text and block wrappers */
 body.subpage main > .section > .default-content-wrapper + .columns-wrapper,
 body.subpage main > .section > .columns-wrapper + .default-content-wrapper {
   margin-top: 30px;
 }
 
-/* H2 section headings: match original 24px (global default is 28px) */
+/* H2 section headings: 24px (vs global 28px desktop) */
 body.subpage main h2 {
   font-size: 24px;
   line-height: 36px;
 }
 
-/* H3 section headings: match original 18.72px (global default is 22px) */
+/* H3 section headings: 18.72px */
 body.subpage main h3 {
   font-size: 18.72px;
 }
 
-/* Bordered Columns — text content variant (customers page 補償の重複 block).
-   Single outer border with padding, text + list + button on left, image on right. */
+/* ================================================================
+   Bordered columns — text-only variant (no header image)
+   ================================================================ */
 body.subpage main .columns.bordered:not(:has(> div > div > p:first-child img)) {
   border: 2px solid #c7dbf4;
   padding: 30px;
@@ -80,8 +56,7 @@ body.subpage main .columns.bordered:not(:has(> div > div > p:first-child img)) h
   color: #001871;
   border-bottom: none;
   padding-bottom: 0;
-  margin: 0 0 16px;
-  line-height: 40px;
+  margin: 0 0 8px;
 }
 
 body.subpage main .columns.bordered:not(:has(> div > div > p:first-child img)) ul {
@@ -95,9 +70,9 @@ body.subpage main .columns.bordered:not(:has(> div > div > p:first-child img)) l
   line-height: 34px;
 }
 
-/* Bordered Columns — reissue card variant (deduction page).
-   These rules target the card layout with <p><img> headers.
-   :has(p img) ensures they don't apply to bordered columns with text content. */
+/* ================================================================
+   Bordered columns — image-header variant
+   ================================================================ */
 body.subpage main .columns.bordered:has(> div > div > p:first-child img) > div {
   align-items: stretch;
 }
@@ -107,7 +82,6 @@ body.subpage main .columns.bordered:has(> div > div > p:first-child img) > div >
   padding: 0;
 }
 
-/* Header image: flush to card edges, acts as blue header bar */
 body.subpage main .columns.bordered > div > div > p:first-child:has(img) {
   margin: 0;
   line-height: 0;
@@ -119,7 +93,6 @@ body.subpage main .columns.bordered > div > div > p:first-child img {
   display: block;
 }
 
-/* Content below header: separator line + side/bottom padding */
 body.subpage main .columns.bordered:has(> div > div > p:first-child img) > div > div > p:nth-child(2) {
   border-top: 2px solid #c7dbf4;
   padding-top: 20px;
@@ -134,19 +107,19 @@ body.subpage main .columns.bordered:has(> div > div > p:first-child img) > div >
   padding-bottom: 20px;
 }
 
-/* Phone section separators in right card: simulate original <hr> between contact sections */
 body.subpage main .columns.bordered:has(> div > div > p:first-child img) > div > div:last-child > p:nth-child(n+3) {
   border-top: 2px solid #dcdcdc;
   padding-top: 20px;
   margin-top: 5px;
 }
 
-/* Body text inside bordered reissue cards: match original normal weight */
 body.subpage main .columns.bordered:has(> div > div > p:first-child img) strong {
   font-weight: 400;
 }
 
-/* Gray-box Columns variant (お問い合わせの前に) — matches original gray bordered box */
+/* ================================================================
+   Gray-box columns
+   ================================================================ */
 body.subpage main .columns.gray-box {
   background-color: #eee;
   border: 2px solid #ccc;
@@ -173,15 +146,12 @@ body.subpage main .columns.gray-box strong {
   margin-bottom: 8px;
 }
 
-/* Plain Columns on subpages: no vertical dividers between columns
-   (the homepage columns-3-cols has border-right dividers, but subpage button grids do not) */
+/* 3-col: no vertical dividers */
 body.subpage main .columns.columns-3-cols > div > div:not(:last-child) {
   border-right: none;
 }
 
-/* Quarter-width icon + three-quarter text layout (e.g., video section).
-   Targets 2-col columns where the first cell has only a single image,
-   making it 25% wide with the text cell taking the remaining 75%. */
+/* 2-col image-text: 25/75 split when first column is image-only */
 body.subpage main .columns.columns-2-cols:has(> div > div:first-child > p:only-child img:only-child) > div > div:first-child {
   flex: 0 0 25%;
 }
@@ -193,4 +163,32 @@ body.subpage main .columns.columns-2-cols:has(> div > div:first-child > p:only-c
 /* Reference number row: right-align page number in second column */
 body.subpage main > .section:last-of-type .columns.columns-2-cols > div > div:last-child p {
   text-align: right;
+}
+
+/* ================================================================
+   Desktop (>= 768px)
+   ================================================================ */
+@media (width >= 768px) {
+  body.subpage main > .section:first-of-type h1 {
+    font-size: 32px;
+    padding-left: 46px;
+  }
+
+  /* Pattern 2 FIX: longhand margins to preserve auto centering */
+  body.subpage main > .section.narrow {
+    margin-top: 60px;
+    margin-bottom: 60px;
+  }
+
+  body.subpage main > .section:nth-of-type(2) {
+    margin-top: 0;
+  }
+}
+
+/* Pattern 3 FIX: correct H1 alignment formula */
+@media (width > 1200px) {
+  body.subpage main > .section:first-of-type h1 {
+    padding-left: calc(7.5% + 15px);
+    padding-right: calc(7.5% + 15px);
+  }
 }

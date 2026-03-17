@@ -33,6 +33,81 @@ The auto-convert hook (`auto-convert-md.js`) automatically generates both `.plai
 
 ---
 
+## Mobile vs Desktop Image Art Direction (CRITICAL — applies to ALL page migrations)
+
+**CRITICAL: The original site (americanhome.co.jp) uses server-side User-Agent detection to serve DIFFERENT HTML for mobile vs desktop.** This means images, and sometimes entire content blocks, differ between the two versions. Every page migration MUST account for this.
+
+**During migration, ALWAYS perform a dual-fetch of the source page:**
+1. Fetch with a **desktop** User-Agent (or use the default browser) to get the desktop HTML/images.
+2. Fetch with a **mobile** User-Agent (e.g., iPhone Safari) to get the mobile HTML/images.
+3. Compare all `<img>` elements between the two responses. Any image that differs (different URL, different filename, different rendition size) requires art direction handling.
+
+**What to look for — common patterns on this site:**
+- **Different filenames:** Desktop uses `-pc.png`/`-pc.jpeg`, mobile uses `-sp.png`/`-sp.jpeg` or a differently named file (e.g., `btn03-pc.png` on desktop → `btn02.png` on mobile).
+- **Different rendition sizes:** Same filename but different `image.coreimg.XX.YYY.png` dimensions (e.g., desktop `540px` vs mobile `320px`). The container path also differs: `container_1888795670` (desktop) vs `container_860166202_` (mobile).
+- **Content images, CTA button images, illustration images, H3 header images, anchor link icons** — ALL image types can have mobile/desktop variants. Do not assume only "hero" or "banner" images have art direction.
+
+**How to author art direction in EDS content:**
+- Place **two consecutive `<img>` elements** inside the same parent — mobile image FIRST, desktop image SECOND.
+- For images inside `<p>` tags: `<p><img src="mobile.png" alt="..."><img src="desktop.png" alt="..."></p>`
+- For images inside `<a>` tags: `<a href="..."><img src="mobile.png" alt="..."><img src="desktop.png" alt="..."></a>`
+- For images inside `<h3>` tags: `<h3><img src="mobile.png" alt="..."><img src="desktop.png" alt="...">Text</h3>`
+
+**CSS art direction rules (add to template CSS):**
+```css
+/* Mobile (base): hide desktop image (second consecutive img) */
+body.<template> p > img + img,
+body.<template> h3 > img + img,
+body.<template> a > img + img {
+  display: none;
+}
+
+/* Desktop (>= 768px): hide mobile image, show desktop image */
+@media (width >= 768px) {
+  body.<template> p > img:has(+ img),
+  body.<template> h3 > img:has(+ img),
+  body.<template> a > img:has(+ img) {
+    display: none;
+  }
+
+  body.<template> p > img + img,
+  body.<template> h3 > img + img,
+  body.<template> a > img + img {
+    display: inline;
+  }
+}
+```
+
+**Checklist for every page migration:**
+- [ ] Fetched page with both mobile and desktop User-Agents
+- [ ] Compared all images between the two responses
+- [ ] Identified all images that differ (filename, URL, or rendition size)
+- [ ] Authored two `<img>` elements (mobile first, desktop second) for every differing image
+- [ ] Added CSS art direction rules to the template CSS
+- [ ] Verified on mobile viewport (375px): correct mobile images shown, desktop images hidden
+- [ ] Verified on desktop viewport (1280px): correct desktop images shown, mobile images hidden
+
+---
+
+## Template Convention (Per-Page Templates)
+
+**CRITICAL: Every newly migrated page MUST get its own dedicated template.** Do NOT reuse an existing template (e.g., `customers`, `claim`) for a new page unless the user explicitly requests it.
+
+**How templates work:** Each page's content `.metadata` block includes a `template` value (e.g., `template: family-registration`). The EDS `processPageMetadata()` function sets `<meta name="template">` from this, then `decorateTemplateAndTheme()` adds the slug as a body class and `loadCSS()` loads `templates/<slug>/<slug>.css`. No hardcoded mapping in JS is needed.
+
+**Rules:**
+1. When migrating a new page, create a new template directory at `templates/<page-slug>/` with its own CSS file.
+2. Set the `template` value in the page's content `.metadata` block (in `.plain.html`) to match the slug. The EDS pipeline handles the rest automatically.
+3. The template CSS should contain page-specific styling (e.g., navy H1 banner, section spacing, heading sizes) — copy the relevant rules from the closest existing template as a starting point, then adjust.
+4. **Reuse an existing template ONLY if the user explicitly says** "use the X template" or "same template as Y page" or similar.
+5. Each page template is a potential "template head" — future pages may eventually share it, but that decision belongs to the user, not to the assistant.
+6. Template CSS class is the slug name applied to `<body>` (e.g., `body.family-registration`). Update all selectors accordingly.
+7. **Do NOT hardcode template mappings in JavaScript.** The content metadata is the single source of truth.
+
+**Example:** Migrating `/home/customers/family-registration` → create `templates/family-registration/family-registration.css` with `body.family-registration ...` selectors, and set `template: family-registration` in the page's `.metadata` block.
+
+---
+
 ## Custom Skills
 
 ### Design System Extraction (MUST run BEFORE page migration)
@@ -87,3 +162,36 @@ Read and follow the complete workflow in `.claude/skills/excat-navigation-orches
 - Mobile is implemented only after customer confirms desktop; mobile follows the same structural + style validation rigor.
 
 **Do NOT use for:** Simple link lists without screenshot evidence, pages not yet migrated, footer or non-header layout work.
+
+---
+
+## Migration Learnings (americanhome.co.jp)
+
+**INSTRUCTION: When a new lesson is learned during migration work on this project, append it to this section. Keep entries concise (1-3 sentences). These learnings persist across sessions and must always be followed.**
+
+1. **Every page gets its own template.** Always create a dedicated `templates/<slug>/<slug>.css` for each migrated page. Never reuse an existing template unless the user explicitly asks to. Page-specific styling (spacing, colors, heading sizes) belongs in the template CSS, not in `styles/styles.css`.
+
+2. **Always check images for mobile variants.** The original site serves different images for mobile vs desktop via server-side UA detection. Every page migration must dual-fetch (desktop + mobile UA), compare all `<img>` elements, and author two consecutive `<img>` tags (mobile first, desktop second) for any that differ. Missing this produces wrong images on one viewport.
+
+3. **No broad CSS rules for linked images in styles.css.** Rules like `p > a > img { max-width: 85% }` affect ALL linked images (card icons, navigation images, illustrations) — not just CTA buttons. Always scope image sizing to specific templates or blocks, never globally.
+
+4. **Measure vertical spacing per-section against the original.** Do not apply uniform margins (e.g., `margin: 60px 0`) to all sections with a shared class like `.narrow`. Measure each gap between sections on the original page using `getBoundingClientRect()` and override per-section in the template CSS with `nth-of-type` selectors.
+
+5. **Verify section boundaries against the original's background colors.** Content that looks grouped may span separate containers with different backgrounds on the original (e.g., H1 on navy, description on white). Always inspect `computedStyle.backgroundColor` up the ancestor chain before grouping content into a single EDS section.
+
+6. **Auto-convert hook is currently broken.** The hook at `.claude/skills/hooks/auto-convert-md.js` fails with `ERR_MODULE_NOT_FOUND` for `conversion-tools.js`. When creating or editing `.md` files, also manually create/update both `.plain.html` and `.html` until this dependency is fixed.
+
+7. **Always verify Playwright viewport size before measuring.** Playwright's default viewport can be narrow (e.g., 780px). Before extracting computed widths from the original site, explicitly resize to 1280px with `browser_resize`. A content area that fills 100% at a small viewport is NOT a "fixed 780px max-width" — it's responsive. Never hardcode a pixel `max-width` from a single measurement; instead, inspect the CSS rules (`max-width`, `padding`, nesting) to understand the responsive formula and replicate it with `calc()`.
+
+8. **The original site uses `.flexbox-container` for content width on ALL pages.** Every page on americanhome.co.jp uses a consistent `.flexbox-container` class with `max-width: 85%; margin: 0 auto; padding: 0 15px;` to constrain content width. Pages nest multiple levels of `.flexbox-container` to progressively narrow content. When analyzing any page, look for `.flexbox-container` elements in the DOM and count nesting levels — this determines the EDS layout approach.
+
+   **How to implement in EDS:** The global `styles/styles.css` already replicates this with two-level nesting for `.section.narrow`:
+   - Level 1: `main > .section.narrow` gets `max-width: 85%; margin: auto; padding: 0 15px;` (at `>1200px`)
+   - Level 2: `main > .section.narrow > div` gets `max-width: 85%; padding: 0 15px;`
+   - At `<=1200px`: both levels use `max-width: 100%` (matching the original's `@media (max-width: 1024px)` rule)
+
+   **For full-width sections (e.g., navy H1 banners) that need content aligned with narrow sections below:** The section's inner div already gets `max-width: 85%` from the global `main > .section > div` rule (level 1). To simulate level 2, add `padding-left: calc(7.5% + 15px)` to the content element — the `7.5%` resolves against the div's content box and replicates the centering margin of the second `.flexbox-container`, and `15px` replicates its padding.
+
+   **NEVER use hardcoded pixel max-widths or computed `calc()` approximations like `calc(72.25% - 56px)`.** Always use the same `85%` building blocks the original site uses. The original's responsive breakpoints handle the rest: `100%` at `<=1024px`, `99%` at `1025px–1200px`, `85%` at `>1200px`.
+
+   **CSS shorthand caution:** When overriding section margins in template CSS (e.g., per-section spacing with `nth-of-type`), always use longhand `margin-top`/`margin-bottom` — never shorthand `margin: X 0` which resets `margin-left: auto; margin-right: auto` and breaks centering.

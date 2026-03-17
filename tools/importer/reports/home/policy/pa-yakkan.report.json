@@ -1,0 +1,27 @@
+{
+  "status": "success",
+  "url": "https://www.americanhome.co.jp/home/policy/pa_yakkan",
+  "path": "home/policy/pa-yakkan",
+  "timestamp": "2026-03-16T18:07:49.347Z",
+  "title": "Web約款（傷害保険・その他からだの保険・賠償責任保険）｜アメリカンホーム保険会社",
+  "template": "americanhome-yakkan",
+  "blocks": [
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion",
+    "accordion"
+  ]
+}

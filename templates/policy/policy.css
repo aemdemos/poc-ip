@@ -1,0 +1,120 @@
+/* Policy template — Web約款 */
+
+/* Blue banner for the first section (H1 title only) */
+body.policy main > .section:first-of-type {
+  background-color: #001871;
+  padding: 40px 0;
+}
+
+body.policy main > .section:first-of-type h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  padding-left: 30px;
+}
+
+/* Description section (white bg, below the navy banner) */
+body.policy main > .section:nth-of-type(2) {
+  padding-top: 40px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+body.policy main > .section:nth-of-type(2) p {
+  color: #333;
+  line-height: 34px;
+  margin-bottom: 15px;
+}
+
+/* Cards section (paleblue): flush against description, 40px gap below */
+body.policy main > .section:nth-of-type(3) {
+  margin-top: 0;
+  margin-bottom: 40px;
+}
+
+/* Pale blue section background for the cards */
+body.policy main > .section.paleblue {
+  background-color: #c7dbf4;
+  padding: 40px 0;
+}
+
+/* CTA section: no extra margin (40px gap comes from cards' bottom margin) */
+body.policy main > .section:nth-of-type(4) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Reference number row: small gap above */
+body.policy main > .section:nth-of-type(5) {
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+body.policy main > .section:last-of-type .default-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Cards columns: 3-col with card styling */
+body.policy .columns.columns-3-cols > div {
+  gap: 16px;
+  align-items: stretch;
+}
+
+body.policy .columns.columns-3-cols > div > div {
+  background: #fff;
+  border: 1px solid #b1b1b1;
+  padding: 30px 20px;
+  text-align: left;
+}
+
+body.policy .columns.columns-3-cols img {
+  width: auto;
+  max-width: 80px;
+  display: block;
+  margin: 0 0 16px;
+}
+
+body.policy .columns.columns-3-cols h4 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #001871;
+  line-height: 1.4;
+  margin: 0;
+}
+
+body.policy .columns.columns-3-cols h4 a {
+  color: #001871;
+  text-decoration: none;
+}
+
+body.policy .columns.columns-3-cols h4 a:hover {
+  text-decoration: underline;
+}
+
+/* Remove the default 3-cols border-right dividers */
+body.policy .columns.columns-3-cols > div > div:not(:last-child) {
+  border-right: 1px solid #b1b1b1;
+}
+
+/* ================================================================
+   Desktop (>= 768px)
+   ================================================================ */
+@media (width >= 768px) {
+  body.policy main > .section:first-of-type h1 {
+    font-size: 32px;
+    padding-left: 46px;
+  }
+
+  body.policy .columns.columns-3-cols h4 {
+    font-size: 28px;
+  }
+}
+
+@media (width > 1200px) {
+  body.policy main > .section:first-of-type h1 {
+    padding-left: calc(7.5% + 15px);
+    padding-right: calc(7.5% + 15px);
+  }
+}

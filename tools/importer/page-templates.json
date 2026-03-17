@@ -35,7 +35,11 @@
       "urls": [
         "https://www.americanhome.co.jp/home/customers",
         "https://www.americanhome.co.jp/home/customers/deduction",
-        "https://www.americanhome.co.jp/home/customers/claim"
+        "https://www.americanhome.co.jp/home/customers/claim",
+        "https://www.americanhome.co.jp/home/customers/disability",
+        "https://www.americanhome.co.jp/home/customers/family_registration",
+        "https://www.americanhome.co.jp/home/customers/confirmation",
+        "https://www.americanhome.co.jp/home/policy"
       ],
       "description": "Interior subpage with blue H1 banner, service cards, columns blocks, and contact sections for policyholder information",
       "blocks": [
@@ -44,7 +48,8 @@
           "instances": [
             ".container:has(> .cmp-container > .aem-Grid > .image.thirdwidth)",
             ".container.halfwidth.nobottomspace.notopspace:has(.teaserflex + .image)",
-            ".container.quarterwidth + .container.threequarterwidth"
+            ".container.quarterwidth + .container.threequarterwidth",
+            ".flexbox-container:has(> .cmp-container > .aem-Grid > .image.halfwidth)"
           ]
         },
         {
@@ -56,7 +61,24 @@
         {
           "name": "columns-gray-box",
           "instances": [
-            ".container.aiglightgray.completeborder"
+            ".container.aiglightgray.completeborder",
+            ".container.paleblueborder.completeborder:not(.halfwidth):has(> .cmp-container > .aem-Grid > .container > .cmp-container > .aem-Grid > .container.aiglightgray)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "americanhome-yakkan",
+      "urls": [
+        "https://www.americanhome.co.jp/home/policy/pa_yakkan",
+        "https://www.americanhome.co.jp/home/policy/npp_no_yakkan"
+      ],
+      "description": "Policy terms (yakkan) pages with sub-navigation tabs, accordion blocks for insurance types, and PDF download buttons with art direction",
+      "blocks": [
+        {
+          "name": "accordion",
+          "instances": [
+            ".accordion.panelcontainer.jp-accordion"
           ]
         }
       ]

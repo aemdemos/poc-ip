@@ -1,0 +1,75 @@
+/* Deduction template — 保険料控除証明 */
+
+/* Blue banner for the first section (H1 title) */
+body.deduction main > .section:first-of-type {
+  background-color: #001871;
+  padding: 40px 0;
+}
+
+body.deduction main > .section:first-of-type h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  padding-left: 30px;
+}
+
+/* Remove top margin on the section right after the banner */
+body.deduction main > .section:nth-of-type(2) {
+  margin-top: 0;
+  padding-top: 27px;
+}
+
+/* Within-section spacing: gap between headings/text and block wrappers */
+body.deduction main > .section > .default-content-wrapper + .columns-wrapper,
+body.deduction main > .section > .columns-wrapper + .default-content-wrapper {
+  margin-top: 30px;
+}
+
+/* H2 section headings: 24px (vs global 28px desktop) */
+body.deduction main h2 {
+  font-size: 24px;
+  line-height: 36px;
+}
+
+/* H3 section headings: 18.72px */
+body.deduction main h3 {
+  font-size: 18.72px;
+}
+
+/* Reference number row: right-align page number in second column */
+body.deduction main > .section:last-of-type .columns.columns-2-cols > div > div:last-child p {
+  text-align: right;
+}
+
+/* ================================================================
+   Desktop (>= 768px)
+   ================================================================ */
+@media (width >= 768px) {
+  body.deduction main > .section:first-of-type h1 {
+    font-size: 32px;
+    padding-left: 46px;
+  }
+
+  /* Wider section gaps on desktop (60px vs global 40px) */
+  body.deduction main > .section.narrow {
+    margin-top: 60px;
+    margin-bottom: 60px;
+  }
+
+  body.deduction main > .section:nth-of-type(2) {
+    margin-top: 0;
+  }
+
+  /* 3-col CTA grid: no vertical dividers (unlike homepage 3-cols) */
+  body.deduction .columns.columns-3-cols > div > div:not(:last-child) {
+    border-right: none;
+  }
+}
+
+@media (width > 1200px) {
+  body.deduction main > .section:first-of-type h1 {
+    padding-left: calc(7.5% + 15px);
+    padding-right: calc(7.5% + 15px);
+  }
+}
