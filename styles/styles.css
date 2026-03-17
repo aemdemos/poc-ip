@@ -244,14 +244,18 @@ main > .section:first-of-type {
   margin-top: 0;
 }
 
-/* narrow sections */
+/* narrow sections — mirrors original site's nested .flexbox-container pattern:
+   each level gets max-width + padding + auto centering.
+   Level 1 = .section.narrow, Level 2 = .section.narrow > div */
 main > .section.narrow {
-  margin: 30px 0;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  padding: 0 15px;
 }
 
 main > .section.narrow > div {
   max-width: 100%;
-  padding: 0 30px;
+  padding: 0 15px;
 }
 
 /* h2 left accent bar */
@@ -310,11 +314,8 @@ main .section.light > .default-content-wrapper .button-container .button {
   }
 
   main > .section.narrow {
-    margin: 40px 0;
-  }
-
-  main > .section.narrow > div {
-    padding: 0 46px;
+    margin-top: 40px;
+    margin-bottom: 40px;
   }
 
   main .section.light > .default-content-wrapper {
@@ -341,17 +342,21 @@ main .section.light > .default-content-wrapper .button-container .button {
   }
 }
 
-/* Centre the CTA button after the 6-col STEP grid (claim page only) */
-.columns-wrapper:has(.columns-6-cols) + .default-content-wrapper > p {
-  text-align: center;
-}
-
 @media (width > 1200px) {
   main > .section > div {
     max-width: 85%;
   }
 
+  /* Narrow sections: two-level nesting of 85%, matching the original's
+     nested .flexbox-container pattern. Level 1 (section) + Level 2 (div)
+     each get max-width: 85% with padding: 0 15px. */
+  main > .section.narrow {
+    max-width: 85%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   main > .section.narrow > div {
-    max-width: 72.25%;
+    max-width: 85%;
   }
 }

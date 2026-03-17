@@ -1,0 +1,245 @@
+/* Confirmation template — ご契約内容の確認・変更 */
+
+/* ================================================================
+   Section 1: Blue H1 Banner
+   ================================================================ */
+body.confirmation main > .section:first-of-type {
+  background-color: #001871;
+  padding: 40px 0;
+}
+
+body.confirmation main > .section:first-of-type h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+  padding-left: 30px;
+}
+
+/* Remove top margin after banner */
+body.confirmation main > .section:nth-of-type(2) {
+  margin-top: 0;
+  padding-top: 27px;
+}
+
+/* ================================================================
+   Sections 2-4: Bordered boxes with blue header bars
+   (書面による変更, Webでの確認, お電話による確認・変更)
+   ================================================================ */
+
+/* Default-content-wrapper: grid layout so icon paragraph matches H2 height */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 2px solid #c7dbf4;
+  padding: 0;
+  margin-bottom: 0;
+}
+
+/* Blue header bar H2 — shares grid row 1 with icon */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child {
+  grid-row: 1;
+  grid-column: 1;
+  background-color: #001871;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 400;
+  padding: 12px 15px 12px 42px;
+  margin: -2px -2px 0;
+  border: 2px solid #c7dbf4;
+  border-bottom: none;
+  letter-spacing: normal;
+}
+
+/* Remove left accent bar for bordered box H2s */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child::before {
+  display: none;
+}
+
+/* Icon image paragraph: same grid row as H2, stretches to match height */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child + p {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  margin: -2px 0 0;
+  padding-left: 15px;
+  z-index: 1;
+}
+
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child + p img {
+  width: 30px;
+  height: auto;
+}
+
+/* Content after icon image: description paragraph(s) and H3 */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child ~ p:not(:first-of-type),
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child ~ h3 {
+  padding-left: 25px;
+  padding-right: 25px;
+}
+
+/* Remove left accent bar and underline from H3 inside bordered boxes */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h3 {
+  border-bottom: none;
+  padding-bottom: 0;
+  color: #001871;
+}
+
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h3::before {
+  display: none;
+}
+
+/* CTA image buttons: constrain width and center */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper p:last-child:has(a img) {
+  text-align: center;
+  padding-bottom: 15px;
+}
+
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper p:last-child img {
+  width: auto;
+  max-width: 90%;
+}
+
+/* Section 2 only: text paragraph flush against columns below */
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(2) > .default-content-wrapper > p:last-child {
+  margin-bottom: 0;
+}
+
+body.confirmation main > .section:nth-of-type(n+2):nth-of-type(2) > .default-content-wrapper {
+  border-bottom: none;
+}
+
+body.confirmation main > .section:nth-of-type(2) > .columns-wrapper {
+  border: 2px solid #c7dbf4;
+  border-top: none;
+  padding: 15px;
+}
+
+/* Remove column separators */
+body.confirmation main > .section:nth-of-type(2) .columns.columns-3-cols > div > div:not(:last-child) {
+  border-right: none;
+}
+
+/* Service card column spacing: match original ~14px gap, no cell padding */
+body.confirmation main > .section:nth-of-type(2) .columns.columns-3-cols > div {
+  gap: 14px;
+  padding: 0 15px;
+  justify-self: center;
+}
+
+body.confirmation main > .section:nth-of-type(2) .columns.columns-3-cols > div > div {
+  padding: 0;
+}
+
+/* Service card art direction: mobile first, desktop second */
+body.confirmation main > .section:nth-of-type(2) .columns.columns-3-cols > div > div > p > a > img:last-child {
+  display: none;
+}
+
+/* Service card images in columns: natural width */
+body.confirmation main > .section:nth-of-type(2) .columns img {
+  width: auto;
+  max-width: 100%;
+}
+
+/* ================================================================
+   Section 5: その他のお手続き + Gray FAQ box
+   ================================================================ */
+
+/* Halfwidth button images in columns: equal 50/50 columns, override 25/75 image-only rule */
+body.confirmation main > .section:nth-of-type(5) .columns.columns-2-cols:not(.gray-box) > div > div:first-child,
+body.confirmation main > .section:nth-of-type(5) .columns.columns-2-cols:not(.gray-box) > div > div:last-child {
+  flex: 0 0 calc(50% - 12px);
+}
+
+body.confirmation main > .section:nth-of-type(5) .columns:not(.gray-box) {
+  padding: 0 15px;
+  max-width: 85%;
+  justify-self: center;
+}
+
+body.confirmation main > .section:nth-of-type(5) .columns:not(.gray-box) img {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Gray-box FAQ CTA: center the button in second column */
+body.confirmation main > .section:nth-of-type(5) .columns.gray-box > div > div:last-child {
+  text-align: center;
+}
+
+/* ================================================================
+   Section 6: Disability section
+   ================================================================ */
+
+/* CTA button: centered */
+body.confirmation main > .section:nth-of-type(6) .columns > div > div:first-child > p:last-child {
+  text-align: center;
+}
+
+/* Phone number image: fill parent width */
+body.confirmation main > .section:nth-of-type(6) .columns > div > div:last-child img {
+  width: 100%;
+}
+
+/* CTA image: natural width */
+body.confirmation main > .section:nth-of-type(6) .columns > div > div:first-child img {
+  width: auto;
+  max-width: 100%;
+}
+
+/* ================================================================
+   Section 7: Reference numbers
+   ================================================================ */
+body.confirmation main > .section:last-of-type .columns.columns-2-cols > div > div:last-child p {
+  text-align: right;
+}
+
+/* ================================================================
+   Desktop (>= 768px)
+   ================================================================ */
+@media (width >= 768px) {
+  body.confirmation main > .section:first-of-type h1 {
+    font-size: 32px;
+    padding-left: 46px;
+  }
+
+  body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child {
+    font-size: 24px;
+    padding: 12px 20px 12px 60px;
+  }
+
+  body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child + p {
+    padding-left: 20px;
+  }
+
+  body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper > h2:first-child + p img {
+    width: 35px;
+  }
+
+  body.confirmation main > .section:nth-of-type(n+2):nth-of-type(-n+4) > .default-content-wrapper p:last-child img {
+    max-width: 55%;
+  }
+
+  /* Service card art direction: show desktop, hide mobile */
+  body.confirmation main > .section:nth-of-type(2) .columns.columns-3-cols > div > div > p > a > img:first-child {
+    display: none;
+  }
+
+  body.confirmation main > .section:nth-of-type(2) .columns.columns-3-cols > div > div > p > a > img:last-child {
+    display: block;
+  }
+}
+
+@media (width > 1200px) {
+  body.confirmation main > .section:first-of-type h1 {
+    padding-left: calc(7.5% + 15px);
+    padding-right: calc(7.5% + 15px);
+  }
+
+  body.confirmation main > .section:nth-of-type(2) .columns.columns-3-cols > div {
+    max-width: 85%;
+  }
+}

@@ -1,0 +1,360 @@
+/* yakkan template — Web約款 policy pages */
+
+/* ================================================================
+   Art direction: mobile-first image toggle (sp first, pc second)
+   ================================================================ */
+body.yakkan a > img + img {
+  display: none;
+}
+
+@media (width >= 768px) {
+  body.yakkan a > img:has(+ img) {
+    display: none;
+  }
+
+  body.yakkan a > img + img {
+    display: inline;
+  }
+}
+
+/* ================================================================
+   Section 1 — Sub-navigation (policy page tabs)
+   ================================================================ */
+body.yakkan main > .section:first-of-type {
+  padding: 20px 0 10px;
+  margin-bottom: 0;
+}
+
+body.yakkan main > .section:first-of-type p {
+  line-height: 34px;
+  color: #333;
+  margin: 0;
+}
+
+body.yakkan main > .section:first-of-type p img {
+  width: auto;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+body.yakkan main > .section:first-of-type a {
+  color: #1352de;
+  text-decoration: none;
+}
+
+body.yakkan main > .section:first-of-type a:hover {
+  text-decoration: underline;
+}
+
+/* ================================================================
+   Section 2 — Navy banner (H1 only)
+   ================================================================ */
+body.yakkan main > .section:nth-of-type(2) {
+  background-color: #001871;
+  padding: 30px 0;
+}
+
+body.yakkan main > .section:nth-of-type(2) h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 2.14;
+  margin: 0;
+  padding-left: 30px;
+}
+
+/* ================================================================
+   Section 3 — Intro text + contact button
+   ================================================================ */
+body.yakkan main > .section:nth-of-type(3) {
+  padding-top: 40px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+body.yakkan main > .section:nth-of-type(3) p {
+  color: #333;
+  line-height: 34px;
+  margin-bottom: 15px;
+}
+
+/* ================================================================
+   Section 4 — H2 heading + explanatory text + anchor links
+   ================================================================ */
+body.yakkan main > .section:nth-of-type(4) {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 40px;
+}
+
+body.yakkan main > .section:nth-of-type(4) h2 {
+  font-size: 24px;
+  font-weight: 400;
+  color: #001871;
+  line-height: 36px;
+  margin: 0 0 16px;
+  padding-left: 15px;
+  position: relative;
+}
+
+body.yakkan main > .section:nth-of-type(4) h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 5px;
+  height: 80%;
+  background-color: #001871;
+}
+
+body.yakkan main > .section:nth-of-type(4) p {
+  color: #333;
+  line-height: 34px;
+  margin-bottom: 15px;
+}
+
+body.yakkan main > .section:nth-of-type(4) a {
+  color: #1352de;
+  text-decoration: underline;
+}
+
+body.yakkan main > .section:nth-of-type(4) h3 {
+  font-size: 19px;
+  font-weight: 400;
+  color: #333;
+  padding-bottom: 3px;
+  border-bottom: 3px solid #001871;
+  margin: 20px 0 16px;
+}
+
+/* Anchor links list — styled to match original (blue link color) */
+body.yakkan main > .section:nth-of-type(4) h3 ~ p {
+  color: #1352de;
+}
+
+/* Inline icons in anchor links list */
+body.yakkan main > .section:nth-of-type(4) p > img {
+  width: auto;
+  height: 16px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* PDF icon inline with text links */
+body.yakkan main > .section:nth-of-type(4) p > img[src*="icon06"],
+body.yakkan main > .section:nth-of-type(4) p > img[src*="icon08"] {
+  height: 14px;
+}
+
+/* ================================================================
+   Section 5 — Accordion
+   ================================================================ */
+body.yakkan main > .section:nth-of-type(5) {
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+/* Override default accordion styling for this template */
+body.yakkan .accordion details {
+  background-color: #f2f6fb;
+  border: 2px solid #cdcdcd;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+body.yakkan .accordion details + details {
+  margin-top: 30px;
+}
+
+body.yakkan .accordion details summary {
+  font-size: 24px;
+  font-weight: 700;
+  color: #001871;
+  padding: 16px;
+  padding-right: 46px;
+  background-color: #f2f6fb;
+}
+
+body.yakkan .accordion details[open] summary {
+  background-color: #f2f6fb;
+}
+
+body.yakkan .accordion details summary:focus,
+body.yakkan .accordion details summary:hover {
+  background-color: #e6eef8;
+}
+
+body.yakkan .accordion details summary::after {
+  content: '+';
+  border: none;
+  transform: translateY(-50%);
+  width: auto;
+  height: auto;
+  font-size: 28px;
+  font-weight: 300;
+  color: #001871;
+  line-height: 1;
+}
+
+body.yakkan .accordion details[open] summary::after {
+  content: '\2212';
+  transform: translateY(-50%);
+}
+
+body.yakkan .accordion details .accordion-item-body {
+  background-color: #fff;
+  padding: 24px;
+}
+
+body.yakkan .accordion details[open] .accordion-item-body {
+  border-top: none;
+  background-color: #fff;
+}
+
+/* PDF button images inside accordion */
+body.yakkan .accordion .accordion-item-body a img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+body.yakkan .accordion .accordion-item-body p {
+  margin-bottom: 10px;
+  line-height: 34px;
+}
+
+/* PDF icon in cancer notice links */
+body.yakkan .accordion .accordion-item-body p > img[src*="icon06"] {
+  width: auto;
+  height: 14px;
+  display: inline;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+body.yakkan .accordion .accordion-item-body a {
+  color: #337ab7;
+  text-decoration: none;
+}
+
+body.yakkan .accordion .accordion-item-body a:hover {
+  text-decoration: underline;
+}
+
+/* ================================================================
+   Section 6 — Contact (お問い合わせ先)
+   ================================================================ */
+body.yakkan main > .section:nth-of-type(6) {
+  margin-top: 60px;
+  margin-bottom: 0;
+}
+
+body.yakkan main > .section:nth-of-type(6) h2 {
+  font-size: 24px;
+  font-weight: 400;
+  color: #333;
+  background-color: #eee;
+  padding: 12px 16px;
+  margin: 0;
+  border: none;
+}
+
+/* Remove the accent bar from contact section H2 */
+body.yakkan main > .section:nth-of-type(6) h2::before {
+  display: none;
+}
+
+body.yakkan main > .section:nth-of-type(6) .default-content-wrapper {
+  border: 2px solid #c7dbf4;
+  text-align: center;
+  padding: 0;
+}
+
+body.yakkan main > .section:nth-of-type(6) .default-content-wrapper p {
+  padding: 0 16px;
+}
+
+/* ================================================================
+   Section 7 — Adobe Reader notice
+   ================================================================ */
+body.yakkan main > .section:nth-of-type(7) {
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+body.yakkan main > .section:nth-of-type(7) .default-content-wrapper {
+  background-color: #eee;
+  border: 2px solid #ccc;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+body.yakkan main > .section:nth-of-type(7) .default-content-wrapper p:first-child {
+  flex: 0 0 auto;
+}
+
+body.yakkan main > .section:nth-of-type(7) .default-content-wrapper p:first-child img {
+  width: 160px;
+  height: auto;
+}
+
+body.yakkan main > .section:nth-of-type(7) p {
+  color: #333;
+  line-height: 34px;
+  margin: 0;
+}
+
+body.yakkan main > .section:nth-of-type(7) a {
+  color: #1352de;
+  text-decoration: underline;
+}
+
+body.yakkan main > .section:nth-of-type(7) p > img[src*="icon"] {
+  width: auto;
+  height: 14px;
+  display: inline;
+  vertical-align: middle;
+}
+
+/* ================================================================
+   Section 8 — Reference codes
+   ================================================================ */
+body.yakkan main > .section:nth-of-type(8) {
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+body.yakkan main > .section:last-of-type .default-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+body.yakkan main > .section:nth-of-type(8) p {
+  color: #333;
+  font-size: 16px;
+  line-height: 34px;
+}
+
+/* ================================================================
+   Desktop (>= 768px)
+   ================================================================ */
+@media (width >= 768px) {
+  body.yakkan main > .section:nth-of-type(2) h1 {
+    font-size: 32px;
+    padding-left: 46px;
+  }
+}
+
+@media (width > 1200px) {
+  /* Align H1 banner text with the narrow content area below.
+     The banner section is full-width but its div already gets max-width: 85%
+     (level 1) from the global rule. The H1 padding simulates level 2:
+     7.5% centering margin + 15px inner padding. */
+  body.yakkan main > .section:nth-of-type(2) h1 {
+    padding-left: calc(7.5% + 15px);
+    padding-right: calc(7.5% + 15px);
+  }
+}

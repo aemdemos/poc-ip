@@ -149,107 +149,278 @@ var CustomImportScript = (() => {
       cells: [[["style"], ["narrow"]]]
     });
   }
+  function extractCardContent(card, doc) {
+    const frag = doc.createDocumentFragment();
+    const els = card.querySelectorAll("h3, h4, p, img, a, hr");
+    const seen = /* @__PURE__ */ new Set();
+    els.forEach((el) => {
+      if (el.tagName === "IMG" && (el.closest("h3") || el.closest("h4") || el.closest("p") || el.closest("a"))) return;
+      if (el.tagName === "A" && el.closest("p")) return;
+      if (seen.has(el)) return;
+      seen.add(el);
+      if (el.tagName === "H3" || el.tagName === "H4") {
+        const img = el.querySelector("img");
+        if (img) {
+          const p = doc.createElement("p");
+          p.appendChild(img.cloneNode(true));
+          frag.appendChild(p);
+        }
+      } else {
+        frag.appendChild(el.cloneNode(true));
+      }
+    });
+    return frag;
+  }
+  function extractHalfContent(container, doc) {
+    const frag = doc.createDocumentFragment();
+    const els = container.querySelectorAll("p, img, a");
+    const seen = /* @__PURE__ */ new Set();
+    els.forEach((el) => {
+      if (el.tagName === "IMG" && (el.closest("p") || el.closest("a"))) return;
+      if (el.tagName === "A" && el.closest("p")) return;
+      if (seen.has(el)) return;
+      seen.add(el);
+      frag.appendChild(el.cloneNode(true));
+    });
+    return frag;
+  }
   function transform2(hookName, element, payload) {
     if (hookName === TransformHook2.beforeTransform) {
+      const { document: doc } = payload;
       WebImporter.DOMUtils.remove(element, [
         ".hideinpc"
       ]);
-      const cardContainers = element.querySelectorAll(".halfwidth.paleblueborder.completeborder");
-      if (cardContainers.length === 2) {
-        let extractCardContent = function(card) {
+      const outerBorderedWrappers = Array.from(element.querySelectorAll(
+        ".paleblueborder.completeborder:not(.halfwidth):not(.topborder):not(.norowspace)"
+      )).filter((box) => {
+        if (box.parentElement.closest(".paleblueborder.completeborder")) return false;
+        return box.querySelector(".halfwidth.paleblueborder.completeborder") !== null;
+      });
+      outerBorderedWrappers.forEach((wrapper) => {
+        const allGrids = wrapper.querySelectorAll(".aem-Grid");
+        let contentGrid = null;
+        for (const grid of allGrids) {
+          const children = Array.from(grid.children);
+          const hasMeaningful = children.some((child) => child.classList.contains("teaserflex") || child.classList.contains("flexbox-container") || child.querySelector(".halfwidth.paleblueborder"));
+          if (hasMeaningful) {
+            contentGrid = grid;
+            break;
+          }
+        }
+        if (contentGrid) {
           const frag = doc.createDocumentFragment();
-          const els = card.querySelectorAll("h3, h4, p, img, a, hr");
-          const seen = /* @__PURE__ */ new Set();
-          els.forEach((el) => {
-            if (el.tagName === "IMG" && (el.closest("h3") || el.closest("h4") || el.closest("p") || el.closest("a"))) return;
-            if (el.tagName === "A" && el.closest("p")) return;
-            if (seen.has(el)) return;
-            seen.add(el);
-            if (el.tagName === "H3" || el.tagName === "H4") {
-              const img = el.querySelector("img");
-              if (img) {
-                const p = doc.createElement("p");
-                p.appendChild(img.cloneNode(true));
-                frag.appendChild(p);
-              }
+          while (contentGrid.firstChild) {
+            frag.appendChild(contentGrid.firstChild);
+          }
+          wrapper.replaceWith(frag);
+        }
+      });
+      const allHalfwidthCards = Array.from(element.querySelectorAll(
+        ".halfwidth.paleblueborder.completeborder"
+      ));
+      const processedCards = /* @__PURE__ */ new Set();
+      let cardPairIdx = 0;
+      for (const card of allHalfwidthCards) {
+        if (processedCards.has(card)) continue;
+        const parent = card.parentElement;
+        if (!parent) continue;
+        const siblings = Array.from(parent.children).filter(
+          (c) => c.classList.contains("halfwidth") && c.classList.contains("paleblueborder") && c.classList.contains("completeborder") && !processedCards.has(c)
+        );
+        if (siblings.length >= 2) {
+          for (let i = 0; i < siblings.length - 1; i += 2) {
+            const left = siblings[i];
+            const right = siblings[i + 1];
+            const leftMarker = doc.createElement("div");
+            leftMarker.className = `card-pair-left-${cardPairIdx}`;
+            leftMarker.appendChild(extractCardContent(left, doc));
+            left.replaceWith(leftMarker);
+            const rightMarker = doc.createElement("div");
+            rightMarker.className = `card-pair-right-${cardPairIdx}`;
+            rightMarker.appendChild(extractCardContent(right, doc));
+            right.replaceWith(rightMarker);
+            processedCards.add(left);
+            processedCards.add(right);
+            cardPairIdx += 1;
+          }
+        }
+      }
+      const remainingCards = Array.from(element.querySelectorAll(
+        ".halfwidth.paleblueborder.completeborder"
+      ));
+      for (let i = 0; i < remainingCards.length - 1; i += 2) {
+        const left = remainingCards[i];
+        const right = remainingCards[i + 1];
+        const leftMarker = doc.createElement("div");
+        leftMarker.className = `card-pair-left-${cardPairIdx}`;
+        leftMarker.appendChild(extractCardContent(left, doc));
+        left.replaceWith(leftMarker);
+        const rightMarker = doc.createElement("div");
+        rightMarker.className = `card-pair-right-${cardPairIdx}`;
+        rightMarker.appendChild(extractCardContent(right, doc));
+        right.replaceWith(rightMarker);
+        cardPairIdx += 1;
+      }
+      const coreblueHeaderBoxes = Array.from(element.querySelectorAll(
+        ".paleblueborder.completeborder:not(.halfwidth):not(.topborder):not(.norowspace)"
+      )).filter((box) => {
+        if (box.parentElement.closest(".paleblueborder.completeborder")) return false;
+        return box.querySelector(".coreblue h2") !== null;
+      });
+      coreblueHeaderBoxes.forEach((box) => {
+        const frag = doc.createDocumentFragment();
+        const h2 = box.querySelector(".coreblue h2");
+        if (h2) frag.appendChild(h2.cloneNode(true));
+        const bodySection = box.querySelector(".paleblueborder.topborder");
+        if (bodySection) {
+          const flexContainers = Array.from(bodySection.querySelectorAll(".flexbox-container"));
+          flexContainers.forEach((fc) => {
+            const innerGrid = fc.querySelector(".aem-Grid");
+            if (!innerGrid) return;
+            const teasers = Array.from(innerGrid.querySelectorAll(":scope > .teaserflex"));
+            teasers.forEach((teaser) => {
+              const h3s = teaser.querySelectorAll("h3");
+              h3s.forEach((h3El) => frag.appendChild(h3El.cloneNode(true)));
+              const ps = teaser.querySelectorAll(".cmp-teaser__description p");
+              ps.forEach((p) => frag.appendChild(p.cloneNode(true)));
+              teaser.remove();
+            });
+            const hasColumnsImages = innerGrid.querySelector(".image.thirdwidth, .image.halfwidth");
+            if (hasColumnsImages) {
+              frag.appendChild(fc);
             } else {
-              frag.appendChild(el.cloneNode(true));
+              const imgContainers = innerGrid.querySelectorAll(".cmp-image");
+              imgContainers.forEach((ic) => {
+                const link = ic.querySelector(".cmp-image__link");
+                const img = ic.querySelector(".cmp-image__image");
+                if (link && img) {
+                  const p = doc.createElement("p");
+                  const a = doc.createElement("a");
+                  a.href = link.href;
+                  a.appendChild(img.cloneNode(true));
+                  p.appendChild(a);
+                  frag.appendChild(p);
+                } else if (img) {
+                  const p = doc.createElement("p");
+                  p.appendChild(img.cloneNode(true));
+                  frag.appendChild(p);
+                }
+              });
             }
           });
-          return frag;
-        };
-        const { document: doc } = payload;
-        cardContainers.forEach((card, idx) => {
+        }
+        box.replaceWith(frag);
+      });
+      const fullBorderedBoxes = Array.from(element.querySelectorAll(
+        ".paleblueborder.completeborder:not(.halfwidth):not(.topborder):not(.norowspace)"
+      )).filter((box) => !box.parentElement.closest(".paleblueborder.completeborder"));
+      let borderedBoxCount = 0;
+      fullBorderedBoxes.forEach((box) => {
+        const innerGrayHeader = box.querySelector(".aiglightgray");
+        const innerHalfwidths = Array.from(box.querySelectorAll(".halfwidth:not(.paleblueborder)"));
+        const h3 = box.querySelector("h3");
+        if (innerGrayHeader && h3) {
+          const frag = doc.createDocumentFragment();
+          const h3Clone = doc.createElement("h3");
+          h3Clone.textContent = h3.textContent.trim();
+          frag.appendChild(h3Clone);
+          const bodySection = box.querySelector(".paleblueborder.topborder");
+          if (bodySection) {
+            const textP = bodySection.querySelector(".cmp-teaser__description p");
+            if (textP) frag.appendChild(textP.cloneNode(true));
+            const link = bodySection.querySelector(".cmp-image__link");
+            const img = bodySection.querySelector(".cmp-image__image");
+            if (link && img) {
+              const p = doc.createElement("p");
+              const a = doc.createElement("a");
+              a.href = link.href;
+              a.appendChild(img.cloneNode(true));
+              p.appendChild(a);
+              frag.appendChild(p);
+            } else if (img) {
+              const p = doc.createElement("p");
+              p.appendChild(img.cloneNode(true));
+              frag.appendChild(p);
+            }
+          }
           const markerDiv = doc.createElement("div");
-          markerDiv.className = idx === 0 ? "reissue-card-left" : "reissue-card-right";
-          markerDiv.appendChild(extractCardContent(card));
-          card.replaceWith(markerDiv);
-        });
-      }
+          markerDiv.className = `gray-box-marker-${borderedBoxCount}`;
+          markerDiv.appendChild(frag);
+          box.replaceWith(markerDiv);
+        } else if (innerHalfwidths.length === 2 && h3) {
+          const leftFrag = doc.createDocumentFragment();
+          const h3Clone = doc.createElement("h3");
+          h3Clone.textContent = h3.textContent.trim();
+          leftFrag.appendChild(h3Clone);
+          const textP = innerHalfwidths[0].querySelector(".cmp-teaser__description p");
+          if (textP) leftFrag.appendChild(textP.cloneNode(true));
+          const rightFrag = doc.createDocumentFragment();
+          const link = innerHalfwidths[1].querySelector(".cmp-image__link");
+          const img = innerHalfwidths[1].querySelector(".cmp-image__image");
+          if (link && img) {
+            const a = doc.createElement("a");
+            a.href = link.href;
+            a.appendChild(img.cloneNode(true));
+            rightFrag.appendChild(a);
+          } else if (img) {
+            rightFrag.appendChild(img.cloneNode(true));
+          }
+          const leftDiv = doc.createElement("div");
+          leftDiv.className = `bordered-box-left-${borderedBoxCount}`;
+          leftDiv.appendChild(leftFrag);
+          const rightDiv = doc.createElement("div");
+          rightDiv.className = `bordered-box-right-${borderedBoxCount}`;
+          rightDiv.appendChild(rightFrag);
+          box.replaceWith(leftDiv);
+          leftDiv.after(rightDiv);
+        } else {
+          const frag = doc.createDocumentFragment();
+          const elems = box.querySelectorAll("h3, p, img");
+          const seen = /* @__PURE__ */ new Set();
+          elems.forEach((el) => {
+            if (el.tagName === "IMG" && (el.closest("p") || el.closest("a"))) return;
+            if (seen.has(el)) return;
+            seen.add(el);
+            frag.appendChild(el.cloneNode(true));
+          });
+          const markerDiv = doc.createElement("div");
+          markerDiv.className = `bordered-box-single-${borderedBoxCount}`;
+          markerDiv.appendChild(frag);
+          box.replaceWith(markerDiv);
+        }
+        borderedBoxCount += 1;
+      });
       const allDttHeadings = element.querySelectorAll(".dttitlecoreblue.left-border-h2");
-      let halfwidths = [];
-      let halfwidthParent = null;
+      let halfwidthPairCount = 0;
       for (const heading of allDttHeadings) {
         const parent = heading.parentElement;
         if (!parent) continue;
         const candidates = Array.from(parent.querySelectorAll(":scope > .halfwidth:not(.paleblueborder)"));
         if (candidates.length === 2) {
-          halfwidths = candidates;
-          halfwidthParent = parent;
-          break;
-        }
-      }
-      if (halfwidths.length === 2) {
-        let extractHalfContent = function(container) {
-          const frag = doc.createDocumentFragment();
-          const els = container.querySelectorAll("p, img, a");
-          const seen = /* @__PURE__ */ new Set();
-          els.forEach((el) => {
-            if (el.tagName === "IMG" && (el.closest("p") || el.closest("a"))) return;
-            if (el.tagName === "A" && el.closest("p")) return;
-            if (seen.has(el)) return;
-            seen.add(el);
-            frag.appendChild(el.cloneNode(true));
+          candidates.forEach((hw, idx) => {
+            const markerDiv = doc.createElement("div");
+            markerDiv.className = idx === 0 ? `halfwidth-col-left-${halfwidthPairCount}` : `halfwidth-col-right-${halfwidthPairCount}`;
+            markerDiv.appendChild(extractHalfContent(hw, doc));
+            hw.replaceWith(markerDiv);
           });
-          return frag;
-        };
-        const { document: doc } = payload;
-        halfwidths.forEach((hw, idx) => {
-          const markerDiv = doc.createElement("div");
-          markerDiv.className = idx === 0 ? "accessibility-col-left" : "accessibility-col-right";
-          markerDiv.appendChild(extractHalfContent(hw));
-          hw.replaceWith(markerDiv);
-        });
+          halfwidthPairCount += 1;
+        }
       }
       const quarterEls = element.querySelectorAll(".quarterwidth");
       for (const quarterEl of quarterEls) {
-        let extractVideoContent = function(container) {
-          const frag = doc.createDocumentFragment();
-          const els = container.querySelectorAll("p, img, a");
-          const seen = /* @__PURE__ */ new Set();
-          els.forEach((el) => {
-            if (el.tagName === "IMG" && (el.closest("p") || el.closest("a"))) return;
-            if (el.tagName === "A" && el.closest("p")) return;
-            if (seen.has(el)) return;
-            seen.add(el);
-            frag.appendChild(el.cloneNode(true));
-          });
-          return frag;
-        };
         const parent = quarterEl.parentElement;
         if (!parent) continue;
         const threeQuarterEl = parent.querySelector(":scope > .threequarterwidth");
         if (!threeQuarterEl) continue;
         const hasHeading = parent.querySelector(":scope > .dttitlecoreblue");
         if (!hasHeading) continue;
-        const { document: doc } = payload;
         const leftMarker = doc.createElement("div");
         leftMarker.className = "video-col-left";
-        leftMarker.appendChild(extractVideoContent(quarterEl));
+        leftMarker.appendChild(extractHalfContent(quarterEl, doc));
         quarterEl.replaceWith(leftMarker);
         const rightMarker = doc.createElement("div");
         rightMarker.className = "video-col-right";
-        rightMarker.appendChild(extractVideoContent(threeQuarterEl));
+        rightMarker.appendChild(extractHalfContent(threeQuarterEl, doc));
         threeQuarterEl.replaceWith(rightMarker);
         break;
       }
@@ -272,61 +443,107 @@ var CustomImportScript = (() => {
         firstRows.forEach((r) => {
           maxCols = Math.max(maxCols, r.children.length);
         });
-        secondRows.forEach((row) => {
-          while (row.children.length < maxCols) {
-            row.appendChild(document.createElement("td"));
-          }
-          first.appendChild(row);
+        const allCells = [...firstRows, ...secondRows].flatMap((r) => Array.from(r.children));
+        const allImageOnly = allCells.every((td) => {
+          const imgs = td.querySelectorAll("img");
+          return imgs.length === 1 && td.textContent.trim() === "";
         });
+        if (allImageOnly && firstRows.length === 1 && secondRows.length === 1) {
+          const firstRow = firstRows[0];
+          Array.from(secondRows[0].children).forEach((td) => firstRow.appendChild(td));
+          const thCell = first.querySelector("th");
+          if (thCell) thCell.colSpan = firstRow.children.length;
+        } else {
+          secondRows.forEach((row) => {
+            while (row.children.length < maxCols) {
+              row.appendChild(document.createElement("td"));
+            }
+            first.appendChild(row);
+          });
+        }
         second.remove();
         columnsTables.splice(i + 1, 1);
         i--;
       }
-      const leftMarker = element.querySelector(".reissue-card-left");
-      const rightMarker = element.querySelector(".reissue-card-right");
-      if (leftMarker && rightMarker) {
+      for (let i = 0; ; i++) {
+        const leftMarker = element.querySelector(`.card-pair-left-${i}`);
+        const rightMarker = element.querySelector(`.card-pair-right-${i}`);
+        if (!leftMarker || !rightMarker) break;
         const leftClone = leftMarker.cloneNode(true);
         const rightClone = rightMarker.cloneNode(true);
-        const borderedBlock = WebImporter.Blocks.createBlock(document, {
+        const block = WebImporter.Blocks.createBlock(document, {
           name: "Columns (bordered)",
           cells: [[[leftClone], [rightClone]]]
         });
-        leftMarker.before(borderedBlock);
+        leftMarker.before(block);
         leftMarker.remove();
         rightMarker.remove();
+      }
+      for (let i = 0; ; i++) {
+        const marker = element.querySelector(`.gray-box-marker-${i}`);
+        if (!marker) break;
+        const clone = marker.cloneNode(true);
+        const block = WebImporter.Blocks.createBlock(document, {
+          name: "Columns (gray-box)",
+          cells: [[[clone]]]
+        });
+        marker.before(block);
+        marker.remove();
       }
       const vidLeft = element.querySelector(".video-col-left");
       const vidRight = element.querySelector(".video-col-right");
       if (vidLeft && vidRight) {
-        const vidLeftClone = vidLeft.cloneNode(true);
-        const vidRightClone = vidRight.cloneNode(true);
         const vidBlock = WebImporter.Blocks.createBlock(document, {
           name: "Columns",
-          cells: [[[vidLeftClone], [vidRightClone]]]
+          cells: [[[vidLeft.cloneNode(true)], [vidRight.cloneNode(true)]]]
         });
         vidLeft.before(vidBlock);
         vidLeft.remove();
         vidRight.remove();
       }
-      const accLeft = element.querySelector(".accessibility-col-left");
-      const accRight = element.querySelector(".accessibility-col-right");
-      if (accLeft && accRight) {
-        const accLeftClone = accLeft.cloneNode(true);
-        const accRightClone = accRight.cloneNode(true);
-        const accBlock = WebImporter.Blocks.createBlock(document, {
+      for (let i = 0; ; i++) {
+        const hwLeft = element.querySelector(`.halfwidth-col-left-${i}`);
+        const hwRight = element.querySelector(`.halfwidth-col-right-${i}`);
+        if (!hwLeft || !hwRight) break;
+        const hwBlock = WebImporter.Blocks.createBlock(document, {
           name: "Columns",
-          cells: [[[accLeftClone], [accRightClone]]]
+          cells: [[[hwLeft.cloneNode(true)], [hwRight.cloneNode(true)]]]
         });
-        accLeft.before(accBlock);
-        accLeft.remove();
-        accRight.remove();
+        hwLeft.before(hwBlock);
+        hwLeft.remove();
+        hwRight.remove();
+      }
+      for (let i = 0; ; i++) {
+        const singleMarker = element.querySelector(`.bordered-box-single-${i}`);
+        const leftMarker2 = element.querySelector(`.bordered-box-left-${i}`);
+        const rightMarker2 = element.querySelector(`.bordered-box-right-${i}`);
+        if (!singleMarker && !leftMarker2) break;
+        if (singleMarker) {
+          const clone = singleMarker.cloneNode(true);
+          const block = WebImporter.Blocks.createBlock(document, {
+            name: "Columns (bordered)",
+            cells: [[[clone]]]
+          });
+          singleMarker.before(block);
+          singleMarker.remove();
+        } else if (leftMarker2 && rightMarker2) {
+          const lClone = leftMarker2.cloneNode(true);
+          const rClone = rightMarker2.cloneNode(true);
+          const block = WebImporter.Blocks.createBlock(document, {
+            name: "Columns (bordered)",
+            cells: [[[lClone], [rClone]]]
+          });
+          leftMarker2.before(block);
+          leftMarker2.remove();
+          rightMarker2.remove();
+        }
       }
       const allParagraphs = element.querySelectorAll("p");
       let refCodeP = null;
       let pageNumP = null;
       allParagraphs.forEach((p) => {
         const text = p.textContent.trim();
-        if (/^AHA\d{4}/.test(text)) refCodeP = p;
+        if (/^(AHA|OM)\d{4}/.test(text)) refCodeP = p;
         if (/^ページ番号/.test(text)) pageNumP = p;
       });
       let refBlock = null;
@@ -348,22 +565,22 @@ var CustomImportScript = (() => {
       }
       const allH2 = Array.from(element.querySelectorAll("h2"));
       const allTables = Array.from(element.querySelectorAll("table"));
-      let grayBoxTable = null;
+      const grayBoxTables = [];
       allTables.forEach((t) => {
         const th = t.querySelector("th");
-        if (th && th.textContent.includes("gray-box")) grayBoxTable = t;
+        if (th && th.textContent.includes("gray-box")) grayBoxTables.push(t);
       });
       const breakPoints = [];
       for (let i = 1; i < allH2.length; i++) {
         breakPoints.push(allH2[i]);
       }
-      if (grayBoxTable) {
-        const prevSibling = grayBoxTable.previousElementSibling;
+      grayBoxTables.forEach((gbt) => {
+        const prevSibling = gbt.previousElementSibling;
         const isAfterH2 = prevSibling && prevSibling.tagName === "HR";
         if (!isAfterH2) {
-          breakPoints.push(grayBoxTable);
+          breakPoints.push(gbt);
         }
-      }
+      });
       if (refBlock) {
         breakPoints.push(refBlock);
       }
@@ -405,7 +622,10 @@ var CustomImportScript = (() => {
     urls: [
       "https://www.americanhome.co.jp/home/customers",
       "https://www.americanhome.co.jp/home/customers/deduction",
-      "https://www.americanhome.co.jp/home/customers/claim"
+      "https://www.americanhome.co.jp/home/customers/claim",
+      "https://www.americanhome.co.jp/home/customers/disability",
+      "https://www.americanhome.co.jp/home/customers/family_registration",
+      "https://www.americanhome.co.jp/home/customers/confirmation"
     ],
     blocks: [
       {
@@ -413,7 +633,8 @@ var CustomImportScript = (() => {
         instances: [
           ".container:has(> .cmp-container > .aem-Grid > .image.thirdwidth)",
           ".container.halfwidth.nobottomspace.notopspace:has(.teaserflex + .image)",
-          ".container.quarterwidth + .container.threequarterwidth"
+          ".container.quarterwidth + .container.threequarterwidth",
+          ".flexbox-container:has(> .cmp-container > .aem-Grid > .image.halfwidth)"
         ]
       },
       {
@@ -425,7 +646,8 @@ var CustomImportScript = (() => {
       {
         name: "columns-gray-box",
         instances: [
-          ".container.aiglightgray.completeborder"
+          ".container.aiglightgray.completeborder",
+          ".container.paleblueborder.completeborder:not(.halfwidth):has(> .cmp-container > .aem-Grid > .container > .cmp-container > .aem-Grid > .container.aiglightgray)"
         ]
       }
     ]
@@ -480,6 +702,8 @@ var CustomImportScript = (() => {
       WebImporter.rules.createMetadata(main, document);
       WebImporter.rules.transformBackgroundImages(main, document);
       WebImporter.rules.adjustImageUrls(main, url, params.originalURL);
+      const pagePath = new URL(params.originalURL).pathname.replace(/\/$/, "").replace(/\.html$/, "");
+      const templateName = pagePath.split("/").pop() || "subpage";
       const allTables = main.querySelectorAll("table");
       for (const table of allTables) {
         const th = table.querySelector("th");
@@ -488,7 +712,7 @@ var CustomImportScript = (() => {
           const tdKey = document.createElement("td");
           tdKey.textContent = "template";
           const tdVal = document.createElement("td");
-          tdVal.textContent = "subpage";
+          tdVal.textContent = templateName;
           tr.appendChild(tdKey);
           tr.appendChild(tdVal);
           table.appendChild(tr);

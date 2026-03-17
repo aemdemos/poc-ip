@@ -107,9 +107,12 @@ function processPageMetadata(main) {
     tmp.innerHTML = cells[1].innerHTML;
     const value = tmp.textContent.trim();
 
-    // Create <meta> tag if not already present
+    // Set <meta> tag — page-level metadata wins over server-injected values
     const attr = key.includes(':') ? 'property' : 'name';
-    if (!document.head.querySelector(`meta[${attr}="${key}"]`)) {
+    const existing = document.head.querySelector(`meta[${attr}="${key}"]`);
+    if (existing) {
+      existing.setAttribute('content', value);
+    } else {
       const meta = document.createElement('meta');
       meta.setAttribute(attr, key);
       meta.setAttribute('content', value);
@@ -143,15 +146,19 @@ function a11yLinks(main) {
 }
 
 /**
- * Art direction: merge mobile + desktop picture pairs into a single
+ * Art direction: merge mobile + desktop image pairs into a single
  * <picture> with a <source media="(min-width: 768px)">.
  *
- * Pairs are identified by consecutive <picture> elements (in document order)
- * whose <img> share the same non-empty alt text. This works regardless of
- * wrapper elements (<a>, <p>, <div>, etc.) so it handles every DOM shape
- * produced by the local auto-convert hook and the deployed AEM pipeline.
+ * Handles two patterns:
+ * 1. Consecutive <picture> elements whose <img> share the same non-empty alt
+ * 2. Consecutive bare <img> siblings (same parent) with matching non-empty alt
+ *
+ * Both patterns are produced by the content pipeline — <picture> wrapping
+ * happens on the deployed AEM CDN, while bare <img> pairs appear in local
+ * --html-folder preview mode.
  */
 function mergeArtDirectionPictures(container) {
+  // --- Pass 1: consecutive <picture> elements (deployed AEM pipeline) ---
   const pictures = [...container.querySelectorAll('picture')];
 
   for (let i = 0; i < pictures.length - 1; i += 1) {
@@ -184,6 +191,30 @@ function mergeArtDirectionPictures(container) {
       }
 
       pictures.splice(i + 1, 1);
+    }
+  }
+
+  // --- Pass 2: consecutive bare <img> siblings (local html-folder mode) ---
+  const imgs = [...container.querySelectorAll('img:not(picture img)')];
+  for (let i = 0; i < imgs.length - 1; i += 1) {
+    const mobileImg = imgs[i];
+    const desktopImg = imgs[i + 1];
+    if (
+      mobileImg.alt && mobileImg.alt === desktopImg.alt
+      && mobileImg.parentElement === desktopImg.parentElement
+    ) {
+      const picture = document.createElement('picture');
+      const source = document.createElement('source');
+      source.media = '(min-width: 768px)';
+      source.srcset = desktopImg.src;
+      source.width = desktopImg.getAttribute('width') || desktopImg.naturalWidth;
+      source.height = desktopImg.getAttribute('height') || desktopImg.naturalHeight;
+      picture.append(source);
+      picture.append(mobileImg.cloneNode(true));
+
+      mobileImg.replaceWith(picture);
+      desktopImg.remove();
+      imgs.splice(i + 1, 1);
     }
   }
 
@@ -221,15 +252,30 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
 
-    // decorateTemplateAndTheme must run AFTER processPageMetadata (inside
-    // decorateMain) so that the <meta name="template"> tag already exists.
     decorateTemplateAndTheme();
 
-    // load template-specific CSS
+    // load template-specific CSS (supports comma-separated template names)
     const templateName = getMetadata('template');
     if (templateName) {
-      const templateSlug = toClassName(templateName);
-      loadCSS(`${window.hlx.codeBasePath}/templates/${templateSlug}/${templateSlug}.css`);
+      templateName.split(',').forEach((t) => {
+        const slug = toClassName(t.trim());
+        loadCSS(`${window.hlx.codeBasePath}/templates/${slug}/${slug}.css`);
+      });
+    }
+
+    // Also load page-slug template CSS based on URL path.
+    // The aem up server may override local template metadata with remote values,
+    // so we derive the template from the URL path as a fallback.
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    if (pathParts.length > 0) {
+      const pageSlug = toClassName(pathParts[pathParts.length - 1]);
+      const loadedSlugs = templateName
+        ? templateName.split(',').map((t) => toClassName(t.trim()))
+        : [];
+      if (pageSlug && !loadedSlugs.includes(pageSlug)) {
+        document.body.classList.add(pageSlug);
+        loadCSS(`${window.hlx.codeBasePath}/templates/${pageSlug}/${pageSlug}.css`);
+      }
     }
 
     if (getMetadata('breadcrumbs').toLowerCase() === 'true') {

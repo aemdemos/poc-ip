@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "url": "https://www.americanhome.co.jp/home/customers/confirmation",
+  "path": "home/customers/confirmation",
+  "timestamp": "2026-03-11T12:07:44.474Z",
+  "title": "ご契約内容の確認・変更｜アメリカンホーム保険会社",
+  "template": "americanhome-subpage",
+  "blocks": [
+    "columns",
+    "columns",
+    "columns-gray-box"
+  ]
+}
